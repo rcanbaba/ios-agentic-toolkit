@@ -60,6 +60,13 @@ silently widening the change.
 Add or update a test that exercises the crash path when the project has a
 test target where such a test fits naturally. Follow existing test style.
 
+A regression test only counts as evidence if it **fails (or traps) on the
+unfixed code**. Run it before applying the fix, or reason explicitly why it
+would fail. If it would pass on the old code, it is not testing the crash:
+revise it, or report it as "does not reproduce". When the failure is
+probabilistic (random hash seeds, thread timing), say so, and prefer testing
+the violated invariant directly over replaying the scenario.
+
 ## 4. Verify (external feedback loop)
 
 Determine how to build the project: check the project's CLAUDE.md/README,

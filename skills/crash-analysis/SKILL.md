@@ -22,7 +22,8 @@ Crash input: $ARGUMENTS
 ## Read-only contract
 
 - Allowed: reading and searching files, `git log/show/blame/diff`, reading
-  build settings and package manifests.
+  build settings and package manifests, and standalone experiments in a
+  temporary directory outside the repository.
 - The only files you may write are the analysis artifacts under
   `.crash-analysis/<issue-id>/` (see Output) and a line in `.git/info/exclude`.
 - Do **not** edit source, tests, project files, or dependencies, even for a
@@ -35,6 +36,21 @@ Crash input: $ARGUMENTS
 Extract what was supplied: crash type / exception / signal, crashed thread
 and its frames, other relevant threads, app version/build, OS versions,
 devices, event and user counts, custom keys, breadcrumbs/logs.
+
+Firebase Crashlytics specifics:
+- The crashed thread is the one marked `Crashed:`. It is often not the main
+  thread, even though the main thread is listed first.
+- Swift runtime messages (`Fatal error: ...`) usually appear only under
+  **Keys** as `crash_info_entry_0`, `crash_info_entry_1`, ... They are often
+  the most precise evidence available; quote them verbatim.
+- A crash session export (JSON with `logs_and_breadcrumbs`) may be supplied as
+  a file. Read the window leading up to `event_timestamp` first, not the
+  whole log.
+- Most threads in a dump are idle (run loops, `__psynch_cvwait`, worker
+  waits). Focus on the crashed thread and any other thread with app frames,
+  especially ones blocked on the same queue or object.
+- If the issue lists several variants, ask whether the other variants' crashed
+  threads differ. They can separate competing hypotheses.
 
 If the first meaningful application frame or the crash type is missing, ask
 for it. Otherwise proceed and record gaps in `missing_information`; do not
@@ -88,9 +104,18 @@ Stop investigating when one of these holds:
 4. Confidence: **high** = multiple independent observations agree and nothing
    contradicts; **medium** = consistent with evidence but a key link is
    inferred; **low** = plausible, weakly supported.
-5. `insufficient_evidence` is a correct, respectable verdict. Prefer it to an
+5. **Check the mechanism against the exact failure condition.** Matching
+   the crash message to suspicious code is not enough. For runtime traps and
+   assertions, establish the precise condition under which that message is
+   emitted (Swift stdlib/runtime behavior, framework docs) and check that
+   every step of your causal chain is required to reach it. When this is
+   cheap, prove it with a minimal standalone experiment (e.g. a `swiftc`
+   script in a temporary directory outside the repository) and record the
+   result as `runtime` evidence. A mechanism that cannot produce the observed
+   failure makes the proposed reproduction and verification worthless too.
+6. `insufficient_evidence` is a correct, respectable verdict. Prefer it to an
    invented root cause.
-6. Recommend a code change (`code_change.justified: true`) only when the
+7. Recommend a code change (`code_change.justified: true`) only when the
    leading hypothesis is strong enough that a fix would be targeted rather
    than speculative. Defensive guards that merely hide a crash without an
    understood cause are speculative.
