@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "ios-agentic-toolkit",
+  "description": "Agentic iOS engineering workflows by rcanbaba",
+  "owner": {
+    "name": "rcanbaba",
+    "url": "https://github.com/rcanbaba"
+  },
+  "plugins": [
+    {
+      "name": "ios-agentic-toolkit",
+      "description": "Evidence-first crash analysis and approval-gated crash fixing for iOS projects.",
+      "source": "./",
+      "category": "development"
+    }
+  ]
+}
