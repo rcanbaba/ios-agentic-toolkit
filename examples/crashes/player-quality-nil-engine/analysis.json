@@ -1,0 +1,99 @@
+{
+  "schema_version": "1.0",
+  "issue": {
+    "id": "player-quality-nil-engine",
+    "title": "Implicitly unwrapped nil engine in PlayerSession.applyQuality(_:)",
+    "crash_type": "EXC_BREAKPOINT (SIGTRAP) - Fatal error: Unexpectedly found nil while implicitly unwrapping an Optional value",
+    "app_versions": ["3.4.0 (412)", "3.4.1 (418)"],
+    "os_versions": ["17.5", "18.1", "18.2"],
+    "devices": ["iPhone 13", "iPhone 14 Pro", "iPhone 15"]
+  },
+  "summary": "Dismissing the stream-quality sheet after the app returns from background calls PlayerSession.applyQuality(_:), which force-unwraps an engine that was released when the app entered background.",
+  "impact": {
+    "events": 1284,
+    "users": 911,
+    "severity": "high",
+    "notes": "Foreground crash on a user action, present in both 3.4.x builds; spread across OS versions and devices, so not device-specific."
+  },
+  "crash_location": {
+    "thread": "Thread 0 (main)",
+    "top_frame": "libswiftCore _assertionFailure",
+    "first_app_frame": "PlayerSession.applyQuality(_:) (PlayerSession.swift:32)",
+    "file": "source/PlayerSession.swift",
+    "line": 32
+  },
+  "evidence": [
+    { "id": "E1", "kind": "stack_frame", "observation": "Fatal error 'Unexpectedly found nil while implicitly unwrapping an Optional value' with first app frame PlayerSession.applyQuality(_:) at line 32.", "source": "Crashlytics, thread 0, frames 0-1" },
+    { "id": "E2", "kind": "stack_frame", "observation": "applyQuality is called from QualitySheetViewModel.didDismiss() during a presentation transition completion.", "source": "Crashlytics, thread 0, frames 2-7" },
+    { "id": "E3", "kind": "source_code", "observation": "engine is declared as an implicitly unwrapped optional and line 32 calls engine.setQuality(quality) without a nil check.", "source": "source/PlayerSession.swift:6, :32" },
+    { "id": "E4", "kind": "source_code", "observation": "handleDidEnterBackground() stops the engine, sets engine = nil, logs player_engine_released and sets engine_alive=false. Nothing in PlayerSession recreates the engine on foreground.", "source": "source/PlayerSession.swift:24-29" },
+    { "id": "E5", "kind": "breadcrumb", "observation": "Sequence before the crash: quality_sheet_opened, app_background, player_engine_released, app_foreground, quality_sheet_dismissed. No player_started after app_foreground.", "source": "Crashlytics logs" },
+    { "id": "E6", "kind": "custom_key", "observation": "engine_alive = false at crash time.", "source": "Crashlytics custom keys" },
+    { "id": "E7", "kind": "source_code", "observation": "QualitySheetViewModel is @MainActor; didDismiss() is called from the sheet's onDisappear and unconditionally calls session.applyQuality(selected).", "source": "source/QualitySheetViewModel.swift:4, :17-21" },
+    { "id": "E8", "kind": "thread_state", "observation": "Crashed thread is the main thread; no other thread shows activity in app code.", "source": "Crashlytics, thread list" }
+  ],
+  "relevant_code": [
+    { "path": "source/PlayerSession.swift", "symbol": "PlayerSession.applyQuality(_:)", "lines": "31-34", "role": "Crash site: implicit unwrap of engine" },
+    { "path": "source/PlayerSession.swift", "symbol": "PlayerSession.handleDidEnterBackground()", "lines": "24-29", "role": "Lifecycle: releases the engine on background" },
+    { "path": "source/QualitySheetViewModel.swift", "symbol": "QualitySheetViewModel.didDismiss()", "lines": "18-21", "role": "Caller: applies quality on sheet dismissal regardless of engine state" }
+  ],
+  "hypotheses": [
+    {
+      "id": "H1",
+      "rank": 1,
+      "title": "Quality applied after background released the engine",
+      "category": "ui_lifecycle",
+      "confidence": "high",
+      "mechanism": "User opens the quality sheet, backgrounds the app (engine released and set to nil), returns, and dismisses the sheet. didDismiss() calls applyQuality, which implicitly unwraps the nil engine. The unwrap is the symptom; the cause is that the sheet's lifetime outlives the engine's.",
+      "supporting_evidence": ["E1", "E2", "E3", "E4", "E5", "E6", "E7"],
+      "against_or_uncertain": [
+        "Not yet reproduced on a simulator.",
+        "QualitySheet.swift (frame 3) is not in the provided sources; assumed to call didDismiss() from onDisappear as the doc comment states."
+      ]
+    },
+    {
+      "id": "H2",
+      "rank": 2,
+      "title": "Engine released concurrently on a background queue",
+      "category": "concurrency",
+      "confidence": "low",
+      "mechanism": "If the background notification were delivered off the main thread, engine could become nil between a check and the call.",
+      "supporting_evidence": ["E4"],
+      "against_or_uncertain": [
+        "didEnterBackgroundNotification is posted on the main thread and the observer does not hop queues.",
+        "There is no check-then-use window at line 32, and the breadcrumbs show minutes between release and crash (E5).",
+        "No other thread is active in app code (E8)."
+      ]
+    }
+  ],
+  "conclusion": {
+    "verdict": "probable_root_cause",
+    "leading_hypothesis": "H1",
+    "rationale": "Code, breadcrumbs and custom keys independently agree on the engine being released before the sheet dismissal. Kept at 'probable' rather than 'confirmed' until reproduced."
+  },
+  "missing_information": [
+    "QualitySheet.swift, to confirm how didDismiss() is triggered.",
+    "Whether quality changes are expected to persist across a background/foreground cycle (product decision)."
+  ],
+  "reproduction": {
+    "strategy": "Start playback, open the quality sheet, send the app to background (Home), wait, return to foreground, dismiss the sheet.",
+    "feasibility": "likely"
+  },
+  "fix_direction": {
+    "summary": "In PlayerSession, do not unwrap a released engine: if engine is nil, store the requested quality and apply it when start(stream:) creates the next engine. This keeps the user's choice instead of silently dropping it.",
+    "files": ["source/PlayerSession.swift"],
+    "risks": [
+      "Behavior change: the selected quality takes effect on next playback start instead of immediately. Confirm this matches product expectations.",
+      "Other callers of the engine may share the same lifecycle assumption; search for other uses of engine after release."
+    ]
+  },
+  "verification": [
+    "Unit test: applyQuality after handleDidEnterBackground does not crash and the pending quality is applied on the next start(stream:).",
+    "Simulator: run the reproduction steps before and after the fix.",
+    "After release: monitor this issue's event count on the fixed version in Crashlytics."
+  ],
+  "code_change": {
+    "justified": true,
+    "rationale": "The leading hypothesis is supported by independent code, breadcrumb and custom-key evidence, and the fix is local to one type."
+  }
+}

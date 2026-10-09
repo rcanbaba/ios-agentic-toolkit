@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rcanbaba/ios-agentic-toolkit/schemas/crash-analysis.schema.json",
+  "title": "Crash Analysis",
+  "description": "Output contract of the crash-analysis skill and input contract of the crash-fix skill. Evidence holds only observations; hypotheses reference evidence by id.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "issue",
+    "summary",
+    "impact",
+    "crash_location",
+    "evidence",
+    "relevant_code",
+    "hypotheses",
+    "conclusion",
+    "missing_information",
+    "reproduction",
+    "fix_direction",
+    "verification",
+    "code_change"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.0"] },
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "crash_type"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Short kebab-case slug; also the output directory name." },
+        "title": { "type": "string", "minLength": 1 },
+        "crash_type": { "type": "string", "minLength": 1, "description": "Exception type / signal / fatal error message as reported." },
+        "app_versions": { "type": "array", "items": { "type": "string" } },
+        "os_versions": { "type": "array", "items": { "type": "string" } },
+        "devices": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "summary": { "type": "string", "minLength": 1 },
+    "impact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["severity"],
+      "properties": {
+        "events": { "type": ["integer", "null"], "minimum": 0 },
+        "users": { "type": ["integer", "null"], "minimum": 0 },
+        "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+        "notes": { "type": "string" }
+      }
+    },
+    "crash_location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["thread", "top_frame", "first_app_frame"],
+      "properties": {
+        "thread": { "type": "string", "minLength": 1 },
+        "top_frame": { "type": "string", "minLength": 1 },
+        "first_app_frame": { "type": ["string", "null"], "description": "First meaningful application frame; null if none is symbolicated." },
+        "file": { "type": ["string", "null"] },
+        "line": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Observed facts only. No interpretation.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "observation", "source"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^E[0-9]+$" },
+          "kind": {
+            "type": "string",
+            "enum": ["stack_frame", "thread_state", "breadcrumb", "custom_key", "metadata", "source_code", "git_history", "runtime", "user_report"]
+          },
+          "observation": { "type": "string", "minLength": 1 },
+          "source": { "type": "string", "minLength": 1, "description": "Where it was observed, e.g. 'Crashlytics stack, thread 0, frame 3' or 'Player/PlayerSession.swift:42'." }
+        }
+      }
+    },
+    "relevant_code": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "symbol", "role"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "symbol": { "type": "string", "minLength": 1 },
+          "lines": { "type": "string", "pattern": "^[0-9]+(-[0-9]+)?$" },
+          "role": { "type": "string", "minLength": 1, "description": "Why this code matters: crash site, caller, lifecycle owner, ..." }
+        }
+      }
+    },
+    "hypotheses": {
+      "type": "array",
+      "description": "Ranked root-cause hypotheses. May be empty only when the verdict is insufficient_evidence.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "rank", "title", "category", "confidence", "mechanism", "supporting_evidence", "against_or_uncertain"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^H[0-9]+$" },
+          "rank": { "type": "integer", "minimum": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "category": {
+            "type": "string",
+            "enum": [
+              "memory_lifetime",
+              "concurrency",
+              "force_unwrap_or_precondition",
+              "collection_bounds",
+              "ui_lifecycle",
+              "sdk_lifecycle",
+              "threading_requirement",
+              "state_inconsistency",
+              "data_assumption",
+              "objc_exception",
+              "resource_pressure",
+              "other"
+            ]
+          },
+          "confidence": { "type": "string", "enum": ["high", "medium", "low"] },
+          "mechanism": { "type": "string", "minLength": 1, "description": "The inferred causal chain from trigger to crash." },
+          "supporting_evidence": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^E[0-9]+$" } },
+          "against_or_uncertain": { "type": "array", "items": { "type": "string" }, "description": "Contradicting evidence and open uncertainties." }
+        }
+      }
+    },
+    "conclusion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verdict", "leading_hypothesis", "rationale"],
+      "properties": {
+        "verdict": {
+          "type": "string",
+          "enum": ["root_cause_confirmed", "probable_root_cause", "insufficient_evidence"],
+          "description": "root_cause_confirmed requires reproduction or unambiguous code evidence, not only plausibility."
+        },
+        "leading_hypothesis": { "type": ["string", "null"], "pattern": "^H[0-9]+$" },
+        "rationale": { "type": "string", "minLength": 1 }
+      }
+    },
+    "missing_information": { "type": "array", "items": { "type": "string" } },
+    "reproduction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["strategy", "feasibility"],
+      "properties": {
+        "strategy": { "type": "string", "minLength": 1 },
+        "feasibility": { "type": "string", "enum": ["likely", "uncertain", "unlikely"] }
+      }
+    },
+    "fix_direction": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["summary", "files", "risks"],
+      "properties": {
+        "summary": { "type": "string", "minLength": 1 },
+        "files": { "type": "array", "items": { "type": "string" } },
+        "risks": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "verification": { "type": "array", "items": { "type": "string" }, "description": "How a fix should be verified." },
+    "code_change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["justified", "rationale"],
+      "properties": {
+        "justified": { "type": "boolean" },
+        "rationale": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
