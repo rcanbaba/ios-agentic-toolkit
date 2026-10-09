@@ -113,9 +113,19 @@ Stop investigating when one of these holds:
    script in a temporary directory outside the repository) and record the
    result as `runtime` evidence. A mechanism that cannot produce the observed
    failure makes the proposed reproduction and verification worthless too.
-6. `insufficient_evidence` is a correct, respectable verdict. Prefer it to an
+6. **Separate the immediate cause from the upstream cause.** "The engine was
+   nil at this call" and "why the engine was nil" are different claims with
+   different confidence. Make them separate hypotheses (or state both
+   explicitly in `mechanism`). A fix aimed at the immediate cause is a
+   mitigation unless the upstream cause is understood.
+7. **Commit messages, code comments, other apps and other branches are
+   claims, not evidence.** A fix or comment elsewhere is a hypothesis to test
+   here. Before relying on it, verify that its precondition can actually
+   occur in *this* code path (e.g. "settings not loaded yet" when the caller
+   awaits settings first). Never raise confidence on analogy alone.
+8. `insufficient_evidence` is a correct, respectable verdict. Prefer it to an
    invented root cause.
-7. Recommend a code change (`code_change.justified: true`) only when the
+9. Recommend a code change (`code_change.justified: true`) only when the
    leading hypothesis is strong enough that a fix would be targeted rather
    than speculative. Defensive guards that merely hide a crash without an
    understood cause are speculative.

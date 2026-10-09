@@ -67,6 +67,13 @@ revise it, or report it as "does not reproduce". When the failure is
 probabilistic (random hash seeds, thread timing), say so, and prefer testing
 the violated invariant directly over replaying the scenario.
 
+If the analysis explains only the immediate cause (e.g. a value was nil) and
+not why that state occurred in production, the change is a **mitigation**:
+say so in the plan and the report. Reproducing by forcing the state
+artificially (skipping an initializer, injecting nil) verifies the recovery
+path, not the production cause. Pair such a change with diagnostics
+(e.g. a non-fatal carrying the state needed to identify the upstream cause).
+
 ## 4. Verify (external feedback loop)
 
 Determine how to build the project: check the project's CLAUDE.md/README,
