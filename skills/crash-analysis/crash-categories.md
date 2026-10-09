@@ -34,9 +34,18 @@ Category keys match `hypotheses[].category` in the analysis schema.
   start hashing and comparing equal), mutable stored properties of elements
   changed after insertion, reference-type keys hashed by mutable state,
   `hash` and `==` using different fields.
+- **Exact trap condition:** `_NativeSet.insertNew` traps when, after the
+  insert forces a resize/rehash, the element *being inserted* is found equal
+  to an existing element it did not match before the rehash. Duplicates among
+  existing elements alone do not trap on resize. So check what makes the
+  inserted element equal to a stored one: e.g. a weak wrapper created before
+  an `async` hop whose object is already deallocated when the block runs
+  (nil == nil with stale entries).
 - **Trap:** the crash surfaces on a later insert or resize, when the
   collection rehashes. The faulty code is the `Hashable` conformance or the
-  mutation, not the insert site. A fix that keys on `ObjectIdentifier`
+  mutation, not the insert site. Scenario-based regression tests are
+  probabilistic (random hash seeds); prefer testing the invariant directly
+  (`hashValue` and `==` unchanged after the referenced object is released). A fix that keys on `ObjectIdentifier`
   captured at insertion must still evict deallocated entries, because a freed
   address can be reused by a new object.
 

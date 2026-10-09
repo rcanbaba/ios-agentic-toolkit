@@ -22,7 +22,8 @@ Crash input: $ARGUMENTS
 ## Read-only contract
 
 - Allowed: reading and searching files, `git log/show/blame/diff`, reading
-  build settings and package manifests.
+  build settings and package manifests, and standalone experiments in a
+  temporary directory outside the repository.
 - The only files you may write are the analysis artifacts under
   `.crash-analysis/<issue-id>/` (see Output) and a line in `.git/info/exclude`.
 - Do **not** edit source, tests, project files, or dependencies, even for a
@@ -103,9 +104,18 @@ Stop investigating when one of these holds:
 4. Confidence: **high** = multiple independent observations agree and nothing
    contradicts; **medium** = consistent with evidence but a key link is
    inferred; **low** = plausible, weakly supported.
-5. `insufficient_evidence` is a correct, respectable verdict. Prefer it to an
+5. **Check the mechanism against the exact failure condition.** Matching
+   the crash message to suspicious code is not enough. For runtime traps and
+   assertions, establish the precise condition under which that message is
+   emitted (Swift stdlib/runtime behavior, framework docs) and check that
+   every step of your causal chain is required to reach it. When this is
+   cheap, prove it with a minimal standalone experiment (e.g. a `swiftc`
+   script in a temporary directory outside the repository) and record the
+   result as `runtime` evidence. A mechanism that cannot produce the observed
+   failure makes the proposed reproduction and verification worthless too.
+6. `insufficient_evidence` is a correct, respectable verdict. Prefer it to an
    invented root cause.
-6. Recommend a code change (`code_change.justified: true`) only when the
+7. Recommend a code change (`code_change.justified: true`) only when the
    leading hypothesis is strong enough that a fix would be targeted rather
    than speculative. Defensive guards that merely hide a crash without an
    understood cause are speculative.
