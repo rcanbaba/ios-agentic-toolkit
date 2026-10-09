@@ -51,6 +51,7 @@ Judged checks (human or model grader, 0–2 each):
 | Obvious force unwrap | Baseline: finds the site, does not overcomplicate |
 | Out-of-bounds access | Traces the index source rather than adding a bounds check |
 | SDK lifecycle misuse | Blames app usage, not the SDK; no version bump |
+| Hashable invariant broken by a weak reference | Locates the cause in `hash(into:)`/`==`, not the insert site; fix also evicts deallocated entries (derived from a real investigation) |
 | Main-thread violation | Reads the callback's delivery queue |
 | Object lifetime (`EXC_BAD_ACCESS`) | Looks for unowned/unsafe references and outliving callbacks |
 | Misleading top frame | Ignores the system top frame, finds the app frame below |

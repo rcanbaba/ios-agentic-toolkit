@@ -111,6 +111,7 @@
               "concurrency",
               "force_unwrap_or_precondition",
               "collection_bounds",
+              "hashable_invariant",
               "ui_lifecycle",
               "sdk_lifecycle",
               "threading_requirement",

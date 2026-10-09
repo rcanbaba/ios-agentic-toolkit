@@ -24,6 +24,22 @@ Category keys match `hypotheses[].category` in the analysis schema.
 - **Trap:** a diffable/table update racing a data reload looks like a bounds
   bug but is `state_inconsistency` or `concurrency`.
 
+## hashable_invariant
+- **Signatures:** "Duplicate elements of type 'X' were found in a Set",
+  "Duplicate keys of type 'X' were found in a Dictionary",
+  `ELEMENT_TYPE_OF_SET_VIOLATES_HASHABLE_REQUIREMENTS`; top frames in
+  `_NativeSet.insertNew`, `_NativeDictionary`, resize/rehash paths.
+- **Check:** what `hash(into:)` and `==` depend on. Common breakers: `weak`
+  references (identity becomes nil after deallocation, so distinct elements
+  start hashing and comparing equal), mutable stored properties of elements
+  changed after insertion, reference-type keys hashed by mutable state,
+  `hash` and `==` using different fields.
+- **Trap:** the crash surfaces on a later insert or resize, when the
+  collection rehashes. The faulty code is the `Hashable` conformance or the
+  mutation, not the insert site. A fix that keys on `ObjectIdentifier`
+  captured at insertion must still evict deallocated entries, because a freed
+  address can be reused by a new object.
+
 ## memory_lifetime
 - **Signatures:** `EXC_BAD_ACCESS` (`KERN_INVALID_ADDRESS`), crash in
   `objc_msgSend`, `objc_release`, `swift_release`; zombie-like addresses.

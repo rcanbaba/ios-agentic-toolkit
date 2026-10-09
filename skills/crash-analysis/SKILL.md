@@ -36,6 +36,21 @@ Extract what was supplied: crash type / exception / signal, crashed thread
 and its frames, other relevant threads, app version/build, OS versions,
 devices, event and user counts, custom keys, breadcrumbs/logs.
 
+Firebase Crashlytics specifics:
+- The crashed thread is the one marked `Crashed:`. It is often not the main
+  thread, even though the main thread is listed first.
+- Swift runtime messages (`Fatal error: ...`) usually appear only under
+  **Keys** as `crash_info_entry_0`, `crash_info_entry_1`, ... They are often
+  the most precise evidence available; quote them verbatim.
+- A crash session export (JSON with `logs_and_breadcrumbs`) may be supplied as
+  a file. Read the window leading up to `event_timestamp` first, not the
+  whole log.
+- Most threads in a dump are idle (run loops, `__psynch_cvwait`, worker
+  waits). Focus on the crashed thread and any other thread with app frames,
+  especially ones blocked on the same queue or object.
+- If the issue lists several variants, ask whether the other variants' crashed
+  threads differ. They can separate competing hypotheses.
+
 If the first meaningful application frame or the crash type is missing, ask
 for it. Otherwise proceed and record gaps in `missing_information`; do not
 block on nice-to-have data.
