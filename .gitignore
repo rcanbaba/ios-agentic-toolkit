@@ -1,0 +1,23 @@
+# macOS / editors
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+
+# Never commit real crash investigations or credentials.
+# Real analyses live in the target iOS repo, not here.
+.crash-analysis/
+GoogleService-Info.plist
+*service-account*.json
+*.p8
+*.p12
+*.mobileprovision
+.env
+.env.*
+
+# Local Claude Code settings
+.claude/settings.local.json
