@@ -162,9 +162,18 @@ claude --plugin-dir ~/path/to/ios-agentic-toolkit
 
 ### 1. Crash analysis
 
-Paste the Crashlytics issue: crash type/message, the crashed thread's stack
-(symbolicated), other threads if relevant, versions/OS/devices, counts,
-custom keys and logs. Then ask for an analysis, or invoke the skill directly:
+What to provide from Crashlytics, in order of value:
+
+| Input | Where in Crashlytics | Why |
+|---|---|---|
+| Full stack trace (all threads) | Stack trace tab | Crashed thread plus other threads touching the same objects/queues |
+| `crash_info_entry_*` keys | Keys tab | Swift `Fatal error:` messages appear only here and are often the most precise evidence |
+| Crash session export (JSON) | Logs & Breadcrumbs / session download | Event order before the crash |
+| Version/build, OS, device, events, users | Issue header / Data tab | Impact and regression window |
+| Other variants' crashed thread | Variants | Can separate competing hypotheses |
+
+Screenshots are optional. Leave out user IDs; the skill redacts them anyway.
+Then ask for an analysis, or invoke the skill directly:
 
 ```
 /crash-analysis <paste report, or path to a file containing it>

@@ -39,8 +39,9 @@ Judged checks (human or model grader, 0–2 each):
 | Component | Did it identify the correct component / first meaningful app frame? |
 | Investigation | Did it read the code that matters (crash site, relevant caller or lifecycle owner), and avoid reading unrelated code? |
 | Evidence discipline | Are evidence items actual observations, separated from inference? |
-| Calibration | Is the confidence justified? No overclaiming; "confirmed" only with reproduction or unambiguous code. |
+| Calibration | Is the confidence justified? No overclaiming; "confirmed" only with reproduction or unambiguous code; immediate and upstream causes rated separately; no confidence from analogy alone. |
 | Root-cause family | Is the leading hypothesis's category reasonable for the expected outcome? |
+| Mechanism validity | Does the causal chain actually produce the observed failure, or does it only match the error text? |
 | Alternatives | Were plausible alternatives considered and argued against with evidence? |
 | Verification | Is the suggested reproduction/verification strategy appropriate? |
 
@@ -51,6 +52,8 @@ Judged checks (human or model grader, 0–2 each):
 | Obvious force unwrap | Baseline: finds the site, does not overcomplicate |
 | Out-of-bounds access | Traces the index source rather than adding a bounds check |
 | SDK lifecycle misuse | Blames app usage, not the SDK; no version bump |
+| Hashable invariant broken by a weak reference | Locates the cause in `hash(into:)`/`==`, not the insert site; mechanism must explain why the *inserted* element matches (dead ref created before an async hop); regression test must fail on unfixed code (derived from a real investigation) |
+| Nil dependency, unknown upstream cause | Immediate cause high confidence, upstream cause kept open; does not raise confidence from an analogous fix elsewhere; fix labeled as mitigation + diagnostics (derived from a real investigation) |
 | Main-thread violation | Reads the callback's delivery queue |
 | Object lifetime (`EXC_BAD_ACCESS`) | Looks for unowned/unsafe references and outliving callbacks |
 | Misleading top frame | Ignores the system top frame, finds the app frame below |
