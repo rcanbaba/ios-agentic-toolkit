@@ -28,9 +28,9 @@ global audience, original, no 1:1 copy". The agent proposed three directions
 After the specimen was approved, the agent built these sample screens from
 the generated tokens:
 
-| Messages | Explore | Daily reward | Live room |
-|---|---|---|---|
-| <img src="images/design-system/candy-sticker-messages.jpg" width="190"> | <img src="images/design-system/candy-sticker-explore.jpg" width="190"> | <img src="images/design-system/candy-sticker-bonus.jpg" width="190"> | <img src="images/design-system/candy-sticker-live.jpg" width="190"> |
+| Profile | Messages | Explore | Daily reward | Live room |
+|---|---|---|---|---|
+| <img src="images/design-system/candy-sticker-profile.jpg" width="160"> | <img src="images/design-system/candy-sticker-messages.jpg" width="160"> | <img src="images/design-system/candy-sticker-explore.jpg" width="160"> | <img src="images/design-system/candy-sticker-bonus.jpg" width="160"> | <img src="images/design-system/candy-sticker-live.jpg" width="160"> |
 
 The contract's `signature`, which is what keeps this from looking like a
 default SwiftUI app:
