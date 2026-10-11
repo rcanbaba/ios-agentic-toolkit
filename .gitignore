@@ -21,3 +21,4 @@ GoogleService-Info.plist
 
 # Local Claude Code settings
 .claude/settings.local.json
+.design-system/

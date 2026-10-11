@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0",
+  "name": "paper-lantern",
+  "summary": "Warm editorial language: paper-toned surfaces, serif display type, ink-dark text and a single vermilion accent. Depth comes from hairlines rather than shadows, and shapes are crisper than the iOS default.",
+  "direction": {
+    "mode": "blend",
+    "directives": [
+      "Feel like a printed magazine, not a utility app",
+      "Keep it calm; one strong accent only"
+    ],
+    "mood": ["editorial", "warm", "calm", "tactile"],
+    "rationale": "Chosen over a 'soft pastel' and a 'high-contrast mono' direction. The editorial direction keeps R1's serif hierarchy and R2's restrained accent use, while avoiding R2's dense grid, which fought the reading-first content."
+  },
+  "references": [
+    { "id": "R1", "description": "Synthetic reference: reading app with large serif headlines on off-white paper", "kind": "external_app", "traits_taken": ["serif display headlines", "paper background tone"] },
+    { "id": "R2", "description": "Synthetic reference: finance app using one saturated accent sparingly", "kind": "external_app", "traits_taken": ["single accent reserved for primary actions"] },
+    { "id": "R3", "description": "Synthetic reference: own earlier app with hairline-separated lists", "kind": "own_app", "traits_taken": ["hairline separators instead of shadows"] }
+  ],
+  "signature": [
+    "Serif display headlines over sans-serif body",
+    "Warm paper surfaces instead of pure white",
+    "Vermilion used only for primary actions and selection",
+    "Hairline borders, no drop shadows on content",
+    "Crisp 6pt radii instead of large rounded cards"
+  ],
+  "colors": [
+    { "name": "paper", "role": "background", "light": "#F6F1E7", "dark": "#171512", "origin": "sampled", "reference": "R1" },
+    { "name": "card", "role": "surface", "light": "#FFFCF5", "dark": "#211E1A", "origin": "derived", "note": "paper lifted 2% towards white / black" },
+    { "name": "ink", "role": "text_primary", "light": "#1F1B16", "dark": "#F3EDE2", "origin": "chosen" },
+    { "name": "inkMuted", "role": "text_secondary", "light": "#5E564B", "dark": "#B5AC9E", "origin": "derived" },
+    { "name": "vermilion", "role": "accent", "light": "#C2410C", "dark": "#F26B3A", "origin": "chosen", "note": "R2's accent hue rotated to match the warm palette" },
+    { "name": "onVermilion", "role": "text_on_accent", "light": "#FFFFFF", "dark": "#1A0E08", "origin": "chosen" },
+    { "name": "hairline", "role": "border", "light": "#DDD3C2", "dark": "#3A342C", "origin": "sampled", "reference": "R3" },
+    { "name": "moss", "role": "success", "light": "#3F6212", "dark": "#A3C46B", "origin": "chosen" },
+    { "name": "danger", "role": "danger", "light": "#B91C1C", "dark": "#F87171", "origin": "chosen" }
+  ],
+  "typography": {
+    "families": [
+      { "id": "display", "name": "New York (system serif)", "kind": "system", "system_design": "serif", "license": "Apple system font" },
+      { "id": "text", "name": "SF Pro (system)", "kind": "system", "system_design": "default", "license": "Apple system font" }
+    ],
+    "styles": [
+      { "name": "display", "family": "display", "size": 36, "weight": "semibold", "relative_to": "largeTitle", "tracking": -0.5 },
+      { "name": "headline", "family": "display", "size": 22, "weight": "semibold", "relative_to": "title2" },
+      { "name": "body", "family": "text", "size": 17, "weight": "regular", "relative_to": "body", "line_spacing": 4 },
+      { "name": "label", "family": "text", "size": 15, "weight": "semibold", "relative_to": "subheadline", "tracking": 0.2 },
+      { "name": "caption", "family": "text", "size": 12, "weight": "medium", "relative_to": "caption", "tracking": 0.6 }
+    ]
+  },
+  "spacing": [
+    { "name": "xxs", "value": 4 },
+    { "name": "xs", "value": 8 },
+    { "name": "sm", "value": 12 },
+    { "name": "md", "value": 16 },
+    { "name": "lg", "value": 24 },
+    { "name": "xl", "value": 40 }
+  ],
+  "radii": [
+    { "name": "crisp", "value": 6, "style": "continuous" },
+    { "name": "pill", "value": 999, "style": "circular" }
+  ],
+  "shadows": [
+    { "name": "floating", "color": "ink", "opacity": 0.12, "radius": 16, "x": 0, "y": 8 }
+  ],
+  "borders": [
+    { "name": "hairline", "width": 1, "color": "hairline" }
+  ],
+  "components": [
+    { "name": "primaryButton", "background": "vermilion", "foreground": "onVermilion", "text_style": "label", "radius": "crisp", "padding_h": "lg", "padding_v": "sm", "border": null, "shadow": null, "min_height": 48, "notes": "The only filled, accent-colored control on a screen." },
+    { "name": "secondaryButton", "background": "card", "foreground": "ink", "text_style": "label", "radius": "crisp", "padding_h": "lg", "padding_v": "sm", "border": "hairline", "shadow": null, "min_height": 48, "notes": "Outlined; never accent-colored." },
+    { "name": "tag", "background": "paper", "foreground": "inkMuted", "text_style": "caption", "radius": "pill", "padding_h": "sm", "padding_v": "xxs", "border": "hairline", "shadow": null, "notes": "Metadata chips; not tappable." },
+    { "name": "card", "background": "card", "foreground": "ink", "text_style": "body", "radius": "crisp", "padding_h": "md", "padding_v": "md", "border": "hairline", "shadow": null, "notes": "Content container; separated by hairline, not shadow." }
+  ],
+  "guidelines": {
+    "do": [
+      "Use display/headline (serif) for titles only; everything interactive is sans-serif",
+      "Keep at most one primaryButton per screen",
+      "Separate list rows with hairlines"
+    ],
+    "dont": [
+      "Don't use vermilion for decoration or large backgrounds",
+      "Don't add drop shadows to cards; reserve 'floating' for sheets and popovers",
+      "Don't use pure white or pure black backgrounds"
+    ]
+  },
+  "hig_deviations": [
+    { "what": "6pt corner radius on cards and buttons instead of ~10–12pt", "why": "Crisper, print-like shapes are part of the signature" },
+    { "what": "Serif display type for titles", "why": "Editorial tone; body text stays SF Pro for legibility" }
+  ],
+  "estimates": [
+    "R1 headline size (~34–38pt) estimated visually; set to 36",
+    "R3 hairline color sampled from list separators, width assumed 1pt"
+  ]
+}
