@@ -1,6 +1,6 @@
 # Workflow: Design System
 
-**Status:** implemented (V1) · **Skill:** [`design-system`](../../skills/design-system/SKILL.md) · **Contract:** [`design-system.schema.json`](../../schemas/design-system.schema.json) · **Eval:** [`evals/design-system`](../../evals/design-system/README.md)
+**Status:** implemented · **Skill:** [`design-system`](../../skills/design-system/SKILL.md) · **Contract:** [`design-system.schema.json`](../../schemas/design-system.schema.json) · **Eval:** [`evals/design-system`](../../evals/design-system/README.md)
 
 Creates an original, reusable design system for an iOS app from reference
 screenshots (from other apps, or from the user's own earlier app) plus the
@@ -18,6 +18,34 @@ choices.
 This workflow anchors them. Concrete references supply real traits, the human
 decides the direction, and a contract makes the result reusable. The contract
 is consumed by generated code now, and by UI implementation later.
+
+## In practice: Candy Sticker
+
+From a real run for a new live-streaming app. Mode *blend*: five screenshots
+from the team's earlier apps, plus directives: "white tones, a bit cartoon,
+global audience, original, no 1:1 copy". The agent proposed three directions
+(*Pastel Cloud*, *Candy Sticker*, *Comic Pop*); the human chose Candy Sticker.
+After the specimen was approved, the agent built these sample screens from
+the generated tokens:
+
+| Messages | Explore | Daily reward | Live room |
+|---|---|---|---|
+| <img src="images/design-system/candy-sticker-messages.jpg" width="190"> | <img src="images/design-system/candy-sticker-explore.jpg" width="190"> | <img src="images/design-system/candy-sticker-bonus.jpg" width="190"> | <img src="images/design-system/candy-sticker-live.jpg" width="190"> |
+
+The contract's `signature`, which is what keeps this from looking like a
+default SwiftUI app:
+
+- **Sticker depth:** white cards with a tinted outline and a short,
+  unblurred offset shadow instead of blurred iOS shadows
+- **Pressable candy buttons:** pink pills with a darker base, like a key
+- **SF Rounded at heavy/black weights**, with large rounded numerals
+- **Tilted sticker badges** (about −6°) for multipliers, levels and LIVE
+- **Warm cream canvas** instead of grouped grey
+- **Pink vs. sky-blue duel** that carries from the light app into the dark
+  live stage
+
+The first renders of this run exposed two renderer bugs (see
+[Lessons](#lessons-from-real-use)).
 
 ## Architecture
 
@@ -111,10 +139,12 @@ has Light, Dark and Large-type previews in Xcode.
 | Final approval after seeing renders | **Human** |
 | Where files go in the project, project-file changes | **Human** |
 
-## Example
+## Example contract
 
-[`examples/design-systems/paper-lantern`](../../examples/design-systems/paper-lantern)
-is a synthetic *blend* of three references: a warm editorial system with
+The real run's contract stays in its project. The repository's complete,
+regenerable example is
+[`examples/design-systems/paper-lantern`](../../examples/design-systems/paper-lantern),
+a synthetic *blend* of three references: a warm editorial system with
 serif display type, paper surfaces, a single vermilion accent and hairline
 depth.
 
@@ -153,6 +183,9 @@ returns the contract's exact hex values in both modes.
 | A hard shadow (`radius: 0`) drew a second copy of the component's text: the shadow was applied to the composited view, not the shape. Soft shadows hid it, but even the example had a faint blur under the text | Shadows apply only to the background shape, in components and the specimen |
 | A large system (20 colors, 9 type styles, 8 components) exceeded ImageRenderer's ~8192px limit, and the script failed with a bare `cp` error | Height is measured with the same renderer at a tiny scale; tall specimens are rendered as tiles at full scale; failures are reported and partial results kept |
 | While fixing the above, a pixel comparison showed that the old large-type render had compressed and truncated text and transparent areas | Content is rendered at its natural height (`fixedSize`), never a forced one; verified pixel-identical for light/dark, corrected for large type |
+
+| The specimen shows tokens, but the human judged the system from sample screens. The agent rendered them with a copy of the specimen renderer | Not built yet. Candidate: a `showcase` step that renders agent-written sample screens with the same renderer |
+| The contract has no gradients or component variants, so the agent added them in a hand-written extras file next to the generated code | Not built yet. Candidate: gradient tokens and variants in the schema, once a second run needs them too |
 
 Lesson for the workflow itself: a renderer that distorts layout gives the
 agent wrong visual feedback. Renderer changes are verified by pixel
