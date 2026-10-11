@@ -107,7 +107,8 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/render_specimen.sh .design-system/<name>/generated
 
 `--check` typechecks the output against the iOS Simulator SDK. The render
 produces `specimen-light.png`, `specimen-dark.png` and
-`specimen-large-type.png`. **Read the PNGs and critique them** against the
+`specimen-large-type.png`. Specimens taller than ~8000px are split into
+tiles (`specimen-light-1.png`, `-2.png`, ...); read all tiles. **Read the PNGs and critique them** against the
 chosen direction and the references before showing the user:
 - Does the signature come through, or does it still look like default iOS?
 - Is the hierarchy clear? Do the components feel like one family?

@@ -6,7 +6,8 @@
 #
 # Usage: render_specimen.sh <generated-dir> <out-dir> [--fonts <dir>]
 #   <generated-dir>  contains DesignTokens.swift and DesignSystemSpecimen.swift
-#   <out-dir>        receives specimen-light.png, specimen-dark.png, specimen-large-type.png
+#   <out-dir>        receives specimen-light.png, specimen-dark.png, specimen-large-type.png;
+#                    specimens taller than ~8000px are split into -1, -2, ... tiles
 #   --fonts <dir>    .ttf/.otf files to bundle and register (for bundled families)
 #
 # Uses an already booted iPhone simulator, or boots one and shuts it down after.
@@ -41,26 +42,47 @@ struct SpecimenRendererApp: App {
     }
 }
 
+// ImageRenderer/CGContext fail above roughly 8192px per side; stay below that.
+let maxPixels: CGFloat = 8000
+let width: CGFloat = 393
+
 @MainActor
 func render() async {
     let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-    // Large type renders a much taller image; @1x keeps it within ImageRenderer limits.
     let variants: [(String, ColorScheme, DynamicTypeSize, CGFloat)] = [
         ("light", .light, .large, 2),
         ("dark", .dark, .large, 2),
         ("large-type", .light, .accessibility2, 1),
     ]
     for (name, scheme, typeSize, scale) in variants {
-        let view = DesignSystemSpecimenContent()
-            .frame(width: 393)
+        let content = DesignSystemSpecimenContent()
             .environment(\.colorScheme, scheme)
             .environment(\.dynamicTypeSize, typeSize)
-        let renderer = ImageRenderer(content: view)
-        renderer.scale = scale
-        if let data = renderer.uiImage?.pngData() {
-            try? data.write(to: dir.appendingPathComponent("specimen-\(name).png"))
-        } else {
+        // Never force a height on the content: that changes its layout (truncated
+        // text). Measure with the same renderer at a tiny scale; uiImage.size is in points.
+        let natural = content.frame(width: width).fixedSize(horizontal: false, vertical: true)
+        let probe = ImageRenderer(content: natural)
+        probe.scale = 0.25
+        guard let height = probe.uiImage?.size.height, height > 0 else {
             try? Data().write(to: dir.appendingPathComponent("failed-\(name)"))
+            continue
+        }
+        let tileHeight = floor(maxPixels / scale)
+        let tiles = max(1, Int(ceil(height / tileHeight)))
+        for index in 0..<tiles {
+            let top = CGFloat(index) * tileHeight
+            let slice = AnyView(tiles == 1 ? AnyView(natural) : AnyView(natural
+                .offset(y: -top)
+                .frame(width: width, height: min(tileHeight, height - top), alignment: .top)
+                .clipped()))
+            let renderer = ImageRenderer(content: slice)
+            renderer.scale = scale
+            let file = tiles == 1 ? "specimen-\(name)" : "specimen-\(name)-\(index + 1)"
+            if let data = renderer.uiImage?.pngData() {
+                try? data.write(to: dir.appendingPathComponent("\(file).png"))
+            } else {
+                try? Data().write(to: dir.appendingPathComponent("failed-\(file)"))
+            }
         }
     }
     try? Data().write(to: dir.appendingPathComponent("done"))
@@ -123,12 +145,13 @@ for _ in $(seq 1 60); do
 done
 [[ -f "$DATA/Documents/done" ]] || { echo "error: renderer did not finish within 30s" >&2; exit 1; }
 
-cp "$DATA"/Documents/specimen-*.png "$OUT_DIR/"
 for f in "$DATA"/Documents/failed-*; do
-    [[ -e "$f" ]] && echo "warning: could not render $(basename "$f" | sed 's/^failed-//') variant" >&2
+    [[ -e "$f" ]] && echo "warning: could not render $(basename "$f" | sed 's/^failed-//')" >&2
 done
+rm -f "${OUT_DIR:?}"/specimen-*.png
+cp "$DATA"/Documents/specimen-*.png "$OUT_DIR/" 2>/dev/null || true
 xcrun simctl terminate "$DEVICE" "$BUNDLE_ID" >/dev/null 2>&1 || true
 xcrun simctl uninstall "$DEVICE" "$BUNDLE_ID" >/dev/null 2>&1 || true
 [[ $BOOTED_BY_US -eq 1 ]] && xcrun simctl shutdown "$DEVICE" >/dev/null 2>&1 || true
 
-ls -1 "$OUT_DIR"/specimen-*.png
+ls -1 "$OUT_DIR"/specimen-*.png 2>/dev/null || { echo "error: no specimen images were rendered" >&2; exit 1; }

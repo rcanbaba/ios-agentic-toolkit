@@ -120,8 +120,11 @@ struct DesignSystemSpecimenContent: View {
                         Text(name)
                             .font(.callout)
                             .frame(maxWidth: .infinity, minHeight: 72)
-                            .background(DS.Colors.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            .dsShadow(token)
+                            .background {
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(DS.Colors.card)
+                                    .dsShadow(token)
+                            }
                     }
                 }
             }

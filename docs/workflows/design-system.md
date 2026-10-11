@@ -148,4 +148,12 @@ returns the contract's exact hex values in both modes.
 
 ## Lessons from real use
 
-None yet: the first real run is the next step.
+| Observed in a real run | Change |
+|---|---|
+| A hard shadow (`radius: 0`) drew a second copy of the component's text: the shadow was applied to the composited view, not the shape. Soft shadows hid it, but even the example had a faint blur under the text | Shadows apply only to the background shape, in components and the specimen |
+| A large system (20 colors, 9 type styles, 8 components) exceeded ImageRenderer's ~8192px limit, and the script failed with a bare `cp` error | Height is measured with the same renderer at a tiny scale; tall specimens are rendered as tiles at full scale; failures are reported and partial results kept |
+| While fixing the above, a pixel comparison showed that the old large-type render had compressed and truncated text and transparent areas | Content is rendered at its natural height (`fixedSize`), never a forced one; verified pixel-identical for light/dark, corrected for large type |
+
+Lesson for the workflow itself: a renderer that distorts layout gives the
+agent wrong visual feedback. Renderer changes are verified by pixel
+comparison against a known-good render, not by "it produced a PNG".

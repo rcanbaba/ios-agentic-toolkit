@@ -199,13 +199,16 @@ private struct DSComponentModifier: ViewModifier {
             .padding(.horizontal, component.paddingH)
             .padding(.vertical, component.paddingV)
             .frame(minHeight: component.minHeight)
-            .background(component.background, in: shape)
+            .background {
+                // Shadow only the shape; applied to the whole view it would also shadow the text.
+                shape.fill(component.background)
+                    .dsShadow(component.shadow)
+            }
             .overlay {
                 if let border = component.border {
                     shape.strokeBorder(border.color, lineWidth: border.width)
                 }
             }
-            .dsShadow(component.shadow)
     }
 }
 
