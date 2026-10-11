@@ -7,8 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A Claude Code **plugin** (not an iOS app): a general iOS toolkit made of
 multiple workflows (crash, UI, release, ...). It is used from *other* iOS
 repositories (`/plugin install` or `claude --plugin-dir <this repo>`). This
-repo is where the toolkit is developed. Only the crash workflow is implemented;
-the "Planned" rows in the README workflow table are intentionally unbuilt.
+repo is where the toolkit is developed. Crash and design-system workflows are
+implemented; the "Planned" rows in the README workflow table are intentionally unbuilt.
 
 README.md stays general (principles, building blocks, workflow catalog).
 Workflow-specific design, usage, decisions and lessons go in
@@ -38,11 +38,30 @@ Workflow-specific design, usage, decisions and lessons go in
 - `rules/ios-engineering.md`: shared, domain-independent rules. Skills load
   it via `${CLAUDE_PLUGIN_ROOT}`; crash-specific knowledge belongs in the skill.
 
+## Design-system workflow: how the parts connect
+
+- `skills/design-system/SKILL.md`: agentic analysis, directions, human choice;
+  works in `.design-system/<name>/` in the target repo.
+- `schemas/design-system.schema.json` → `scripts/validate_design_system.py`
+  (refs, Swift-safe names, WCAG contrast) → `scripts/generate_swiftui.py`
+  (tokens + specimen; the generator re-runs validation and refuses invalid
+  contracts) → `scripts/render_specimen.sh` (PNG renders on a simulator).
+- `scripts/sample_colors.swift` measures colors from screenshots.
+- Changing the schema means updating the validator, the generator, the
+  skill and the `paper-lantern` example together, then regenerating.
+- Both validators share `scripts/schema_lite.py`.
+
 ## Commands
 
 ```sh
 # Validate an analysis against the contract (stdlib-only Python)
 python3 scripts/validate_analysis.py examples/crashes/player-quality-nil-engine/analysis.json
+
+# Design system: validate, generate (+ iOS typecheck), render, sample
+python3 scripts/validate_design_system.py examples/design-systems/paper-lantern/design-system.json
+python3 scripts/generate_swiftui.py examples/design-systems/paper-lantern/design-system.json --out examples/design-systems/paper-lantern/generated --check
+scripts/render_specimen.sh examples/design-systems/paper-lantern/generated <out-dir>
+swift scripts/sample_colors.swift <image.png>
 
 # Validate plugin/marketplace manifests and skill frontmatter
 claude plugin validate .

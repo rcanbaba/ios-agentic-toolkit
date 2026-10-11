@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rcanbaba/ios-agentic-toolkit/schemas/design-system.schema.json",
+  "title": "Design System",
+  "description": "Output contract of the design-system skill. Source of truth for generated SwiftUI tokens and the specimen view. Token names become Swift identifiers.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "name",
+    "summary",
+    "direction",
+    "references",
+    "signature",
+    "colors",
+    "typography",
+    "spacing",
+    "radii",
+    "shadows",
+    "borders",
+    "components",
+    "guidelines",
+    "hig_deviations",
+    "estimates"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.0"] },
+    "name": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Kebab-case slug; also the working directory name." },
+    "summary": { "type": "string", "minLength": 1, "description": "One paragraph describing the visual language." },
+    "direction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "directives", "mood", "rationale"],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["blend", "evolve"],
+          "description": "blend: synthesize from several references; evolve: transform one (usually own) app's language according to directives."
+        },
+        "directives": { "type": "array", "items": { "type": "string" }, "description": "Human instructions, verbatim or closely paraphrased." },
+        "mood": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "rationale": { "type": "string", "minLength": 1, "description": "Why this direction was chosen, including which options were rejected." }
+      }
+    },
+    "references": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "description", "kind", "traits_taken"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^R[0-9]+$" },
+          "description": { "type": "string", "minLength": 1 },
+          "kind": { "type": "string", "enum": ["own_app", "external_app", "other"] },
+          "traits_taken": { "type": "array", "items": { "type": "string" }, "description": "Which traits of this reference made it into the system." }
+        }
+      }
+    },
+    "signature": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" },
+      "description": "The few traits that make this system recognizable and non-default."
+    },
+    "colors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "role", "light", "dark", "origin"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" },
+          "role": {
+            "type": "string",
+            "enum": ["background", "surface", "surface_elevated", "text_primary", "text_secondary", "text_on_accent", "accent", "accent_secondary", "border", "success", "warning", "danger", "other"]
+          },
+          "light": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$" },
+          "dark": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$" },
+          "origin": { "type": "string", "enum": ["sampled", "derived", "chosen"], "description": "sampled: measured from a reference image; derived: computed from another token; chosen: a design decision." },
+          "reference": { "type": "string", "pattern": "^R[0-9]+$" },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "typography": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["families", "styles"],
+      "properties": {
+        "families": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name", "kind", "license"],
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" },
+              "name": { "type": "string", "minLength": 1 },
+              "kind": { "type": "string", "enum": ["system", "bundled"] },
+              "system_design": { "type": "string", "enum": ["default", "rounded", "serif", "monospaced"] },
+              "license": { "type": "string", "minLength": 1, "description": "e.g. 'Apple system font', 'SIL OFL 1.1'. Bundled fonts must be licensed for app embedding." }
+            }
+          }
+        },
+        "styles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "family", "size", "weight", "relative_to"],
+            "properties": {
+              "name": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" },
+              "family": { "type": "string" },
+              "size": { "type": "number", "minimum": 6, "maximum": 120 },
+              "weight": { "type": "string", "enum": ["ultraLight", "thin", "light", "regular", "medium", "semibold", "bold", "heavy", "black"] },
+              "relative_to": { "type": "string", "enum": ["largeTitle", "title", "title2", "title3", "headline", "subheadline", "body", "callout", "footnote", "caption", "caption2"], "description": "Dynamic Type text style the size scales with." },
+              "postscript_name": { "type": "string", "description": "Required for bundled families." },
+              "tracking": { "type": "number" },
+              "line_spacing": { "type": "number", "minimum": 0 }
+            }
+          }
+        }
+      }
+    },
+    "spacing": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "value"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" },
+          "value": { "type": "number", "minimum": 0 }
+        }
+      }
+    },
+    "radii": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "value", "style"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" },
+          "value": { "type": "number", "minimum": 0 },
+          "style": { "type": "string", "enum": ["circular", "continuous"] }
+        }
+      }
+    },
+    "shadows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "color", "opacity", "radius", "x", "y"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" },
+          "color": { "type": "string", "description": "Color token name." },
+          "opacity": { "type": "number", "minimum": 0, "maximum": 1 },
+          "radius": { "type": "number", "minimum": 0 },
+          "x": { "type": "number" },
+          "y": { "type": "number" }
+        }
+      }
+    },
+    "borders": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "width", "color"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" },
+          "width": { "type": "number", "minimum": 0 },
+          "color": { "type": "string", "description": "Color token name." }
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "description": "Recipes for core components, expressed only in tokens.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "background", "foreground", "text_style", "radius", "padding_h", "padding_v", "notes"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" },
+          "background": { "type": "string", "description": "Color token name." },
+          "foreground": { "type": "string", "description": "Color token name." },
+          "text_style": { "type": "string", "description": "Typography style name." },
+          "radius": { "type": "string", "description": "Radius token name." },
+          "padding_h": { "type": "string", "description": "Spacing token name." },
+          "padding_v": { "type": "string", "description": "Spacing token name." },
+          "border": { "type": ["string", "null"], "description": "Border token name." },
+          "shadow": { "type": ["string", "null"], "description": "Shadow token name." },
+          "min_height": { "type": "number", "minimum": 0 },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "guidelines": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["do", "dont"],
+      "properties": {
+        "do": { "type": "array", "items": { "type": "string" } },
+        "dont": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "hig_deviations": {
+      "type": "array",
+      "description": "Deliberate departures from Apple defaults, each with a reason.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["what", "why"],
+        "properties": {
+          "what": { "type": "string", "minLength": 1 },
+          "why": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "estimates": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Values estimated visually from screenshots rather than measured (e.g. spacing, radii, font sizes)."
+    }
+  }
+}

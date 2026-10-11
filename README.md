@@ -16,8 +16,8 @@ refined by grading real runs.
 | Workflow | What it does | Status |
 |---|---|---|
 | [Crash Investigation & Fix](docs/workflows/crash-investigation.md) | Read-only Crashlytics investigation with ranked, evidence-backed hypotheses, followed by an approval-gated minimal fix and honest verification | **Implemented**, refined in real use |
-| Design System Extraction | 3–10 UI reference screenshots → structured, reusable design-system contract | Planned |
-| SwiftUI UI Implementation | Implements UI from a design-system contract within the existing project architecture | Planned |
+| [Design System](docs/workflows/design-system.md) | Reference screenshots + your direction → original design-system contract, generated SwiftUI tokens and a rendered specimen | **Implemented** (V1) |
+| SwiftUI UI Implementation | Implements screens using the design-system contract and generated tokens, within the existing project architecture | Planned |
 | Visual Review | Compares implemented UI with design-system rules and feeds violations back to implementation | Planned |
 | App Store Metadata | Description, subtitle, keywords and review notes | Planned |
 | App Review Assistant | Prepares responses to App Review | Planned |
