@@ -4,13 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A Claude Code **plugin** (not an iOS app) with reusable agentic iOS engineering
-workflows. It is used from *other* iOS repositories (`/plugin install` or
-`claude --plugin-dir <this repo>`). This repo is where the toolkit is
-developed. V1 contains only the crash workflow; everything else in the README
-roadmap is intentionally unimplemented.
+A Claude Code **plugin** (not an iOS app): a general iOS toolkit made of
+multiple workflows (crash, UI, release, ...). It is used from *other* iOS
+repositories (`/plugin install` or `claude --plugin-dir <this repo>`). This
+repo is where the toolkit is developed. Only the crash workflow is implemented;
+the "Planned" rows in the README workflow table are intentionally unbuilt.
 
-## Layout and how the parts connect
+README.md stays general (principles, building blocks, workflow catalog).
+Workflow-specific design, usage, decisions and lessons go in
+`docs/workflows/<workflow>.md`.
+
+## Adding a workflow
+
+1. Start from a real task the user has, and agree on the architecture first.
+2. Follow the "Anatomy of a workflow" shape in the README; drop stages that
+   don't apply rather than inventing new mechanisms.
+3. Add `skills/<name>/`, plus a schema, validator, example and
+   `evals/<name>/` only where they serve a current purpose.
+4. Write `docs/workflows/<name>.md` and update the README workflow table.
+5. After real runs, record generalizable lessons in that doc's
+   "Lessons from real use" table.
+
+## Crash workflow: how the parts connect
 
 - `skills/crash-analysis/SKILL.md`: read-only investigation; writes
   `.crash-analysis/<issue-id>/analysis.{json,md}` in the *target* repo.
