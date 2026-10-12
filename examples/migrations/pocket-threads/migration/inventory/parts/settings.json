@@ -1,0 +1,163 @@
+{
+ "schema_version": "1.0",
+ "area": "settings",
+ "title": "Settings and push",
+ "assigned_paths": [
+  "Features/Settings",
+  "Navigation",
+  "Push",
+  "Shared"
+ ],
+ "features": [
+  {
+   "id": "notification-settings",
+   "name": "Notification preferences",
+   "summary": "Toggles for new-message and mention notifications, saved to the server on every change.",
+   "user_roles": [
+    "signed-in"
+   ],
+   "criticality": "medium",
+   "entry_points": [
+    "Settings > Notifications",
+    "AppRoute.settings(.notifications)"
+   ],
+   "screens": [
+    {
+     "name": "NotificationPreferencesView",
+     "file": "Features/Settings/NotificationPreferencesView.swift"
+    }
+   ],
+   "user_actions": [
+    "toggle new messages",
+    "toggle mentions"
+   ],
+   "flow": [],
+   "states_and_edge_cases": [
+    "save failure is ignored; the toggle stays flipped"
+   ],
+   "api_methods": [
+    "updateNotificationPreferences"
+   ],
+   "ws_incoming": [],
+   "ws_outgoing": [],
+   "sdk_usage": [],
+   "app_routes": [
+    "settings(.notifications)"
+   ],
+   "push_types": [
+    "newMessage",
+    "mention"
+   ],
+   "settings_flags": [],
+   "analytics_events": [],
+   "persistence": [],
+   "localization_keys_sample": [
+    "New messages",
+    "Mentions"
+   ],
+   "depends_on": [],
+   "legacy_naming": [],
+   "known_issues": [],
+   "source_files": [
+    "Features/Settings/NotificationPreferencesView.swift",
+    "Features/Settings/SettingsView.swift"
+   ]
+  },
+  {
+   "id": "about-screen",
+   "name": "About",
+   "summary": "Shows the app version.",
+   "user_roles": [
+    "any"
+   ],
+   "criticality": "low",
+   "entry_points": [
+    "Settings > About"
+   ],
+   "screens": [
+    {
+     "name": "AboutView",
+     "file": "Features/Settings/AboutView.swift"
+    }
+   ],
+   "user_actions": [],
+   "flow": [],
+   "states_and_edge_cases": [],
+   "api_methods": [],
+   "ws_incoming": [],
+   "ws_outgoing": [],
+   "sdk_usage": [],
+   "app_routes": [
+    "settings(.about)"
+   ],
+   "push_types": [],
+   "settings_flags": [],
+   "analytics_events": [],
+   "persistence": [],
+   "localization_keys_sample": [],
+   "depends_on": [],
+   "legacy_naming": [],
+   "known_issues": [],
+   "source_files": [
+    "Features/Settings/AboutView.swift"
+   ]
+  },
+  {
+   "id": "push-routing",
+   "name": "Push notification routing",
+   "summary": "Opens the conversation referenced by a new-message or mention push. Other push types are ignored.",
+   "user_roles": [
+    "signed-in"
+   ],
+   "criticality": "high",
+   "entry_points": [
+    "push tap"
+   ],
+   "screens": [],
+   "user_actions": [
+    "tap a push notification"
+   ],
+   "flow": [
+    "decode the push type",
+    "for newMessage / mention navigate to the thread route",
+    "anything else is dropped"
+   ],
+   "states_and_edge_cases": [
+    "push without thread_id is ignored"
+   ],
+   "api_methods": [],
+   "ws_incoming": [],
+   "ws_outgoing": [],
+   "sdk_usage": [],
+   "app_routes": [
+    "thread"
+   ],
+   "push_types": [
+    "newMessage",
+    "mention"
+   ],
+   "settings_flags": [],
+   "analytics_events": [],
+   "persistence": [],
+   "localization_keys_sample": [],
+   "depends_on": [
+    "send-message"
+   ],
+   "legacy_naming": [],
+   "known_issues": [],
+   "source_files": [
+    "Push/PushHandler.swift",
+    "Push/PushType.swift",
+    "Navigation/Router.swift",
+    "Navigation/AppRoute.swift"
+   ]
+  }
+ ],
+ "unassigned_files": [
+  {
+   "file": "Shared/RelativeDateFormatter.swift",
+   "reason": "shared formatting utility, no feature of its own"
+  }
+ ],
+ "open_questions": []
+}

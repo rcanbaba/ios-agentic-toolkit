@@ -1,0 +1,61 @@
+{
+ "dead_identifiers": {
+  "api_methods": [
+   "deleteAccount"
+  ],
+  "ws_incoming": [],
+  "ws_outgoing": [],
+  "push_types": [
+   "digest"
+  ],
+  "app_routes": []
+ },
+ "ambiguous": [],
+ "unresolved_depends_on": [],
+ "log": [
+  {
+   "action": "attach",
+   "field": "api_methods",
+   "identifier": "markThreadRead",
+   "call_sites": [
+    "Features/Thread/ThreadViewModel.swift"
+   ],
+   "features": [
+    "send-message"
+   ]
+  },
+  {
+   "action": "attach",
+   "field": "ws_incoming",
+   "identifier": "typingStarted",
+   "call_sites": [
+    "Features/Thread/ThreadViewModel.swift"
+   ],
+   "features": [
+    "send-message"
+   ]
+  },
+  {
+   "action": "attach",
+   "field": "ws_outgoing",
+   "identifier": "leaveThread",
+   "call_sites": [
+    "Features/Thread/ThreadViewModel.swift"
+   ],
+   "features": [
+    "send-message"
+   ]
+  },
+  {
+   "action": "depends_on",
+   "feature": "send-message",
+   "from": "notification-settings (settings area)",
+   "to": "notification-settings"
+  },
+  {
+   "action": "unassign_file",
+   "file": "Shared/RelativeDateFormatter.swift",
+   "part": "settings"
+  }
+ ]
+}

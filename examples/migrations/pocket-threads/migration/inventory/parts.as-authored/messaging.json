@@ -1,0 +1,191 @@
+{
+ "schema_version": "1.0",
+ "area": "messaging",
+ "title": "Conversations and realtime",
+ "assigned_paths": [
+  "Features/Threads",
+  "Features/Thread",
+  "Realtime",
+  "Networking"
+ ],
+ "features": [
+  {
+   "id": "thread-list",
+   "name": "Conversation list",
+   "summary": "Shows the user's conversations and opens one on tap. Refreshes when the server reports a thread update.",
+   "user_roles": [
+    "signed-in"
+   ],
+   "criticality": "high",
+   "entry_points": [
+    "app launch (root screen)",
+    "AppRoute.threads"
+   ],
+   "screens": [
+    {
+     "name": "ThreadListView",
+     "file": "Features/Threads/ThreadListView.swift"
+    }
+   ],
+   "user_actions": [
+    "tap a conversation to open it"
+   ],
+   "flow": [
+    "screen appears and loads threads via fetchThreads",
+    "on threadUpdated the list reloads",
+    "tap navigates to the thread route"
+   ],
+   "states_and_edge_cases": [
+    "empty: 'No conversations yet' overlay",
+    "load failure: silently shows an empty list"
+   ],
+   "api_methods": [
+    "fetchThreads"
+   ],
+   "ws_incoming": [
+    "threadUpdated"
+   ],
+   "ws_outgoing": [],
+   "sdk_usage": [],
+   "app_routes": [
+    "threads"
+   ],
+   "push_types": [],
+   "settings_flags": [],
+   "analytics_events": [],
+   "persistence": [],
+   "localization_keys_sample": [
+    "No conversations yet"
+   ],
+   "depends_on": [],
+   "legacy_naming": [],
+   "known_issues": [
+    "load failure is swallowed with try? and shows the empty state"
+   ],
+   "source_files": [
+    "Features/Threads/ThreadListView.swift",
+    "Features/Threads/ThreadListViewModel.swift"
+   ]
+  },
+  {
+   "id": "send-message",
+   "name": "Read and send messages in a conversation",
+   "summary": "Opens a conversation, joins its realtime channel, shows incoming messages and typing, and sends new messages with one silent retry.",
+   "user_roles": [
+    "signed-in"
+   ],
+   "criticality": "core",
+   "entry_points": [
+    "tap in conversation list",
+    "push newMessage / mention",
+    "AppRoute.thread"
+   ],
+   "screens": [
+    {
+     "name": "ThreadView",
+     "file": "Features/Thread/ThreadView.swift"
+    }
+   ],
+   "user_actions": [
+    "type a message",
+    "send",
+    "long-press a message to report it"
+   ],
+   "flow": [
+    "open: fetchMessages, then join the realtime thread",
+    "incoming messageReceived appends to the list",
+    "send: sendMessage, append on success, show error on failure"
+   ],
+   "states_and_edge_cases": [
+    "send button disabled while sending or when draft is empty"
+   ],
+   "api_methods": [
+    "fetchMessages",
+    "sendMessage"
+   ],
+   "ws_incoming": [
+    "messageReceived"
+   ],
+   "ws_outgoing": [
+    "joinThread",
+    "typing"
+   ],
+   "sdk_usage": [],
+   "app_routes": [
+    "thread"
+   ],
+   "push_types": [],
+   "settings_flags": [],
+   "analytics_events": [],
+   "persistence": [],
+   "localization_keys_sample": [
+    "Message",
+    "Send",
+    "Could not send"
+   ],
+   "depends_on": [
+    "thread-list",
+    "notification-settings (settings area)"
+   ],
+   "legacy_naming": [],
+   "known_issues": [
+    "typing action is sent on every keystroke without throttling",
+    "leaveThread is never sent when the screen closes"
+   ],
+   "source_files": [
+    "Features/Thread/ThreadView.swift",
+    "Features/Thread/ThreadViewModel.swift"
+   ]
+  },
+  {
+   "id": "realtime-connection",
+   "name": "Realtime socket connection",
+   "summary": "Single shared socket that decodes incoming message types and sends outgoing actions.",
+   "user_roles": [
+    "any"
+   ],
+   "criticality": "medium",
+   "entry_points": [
+    "app launch"
+   ],
+   "screens": [],
+   "user_actions": [],
+   "flow": [],
+   "states_and_edge_cases": [
+    "unknown message types are ignored"
+   ],
+   "api_methods": [],
+   "ws_incoming": [],
+   "ws_outgoing": [],
+   "sdk_usage": [],
+   "app_routes": [],
+   "push_types": [],
+   "settings_flags": [],
+   "analytics_events": [],
+   "persistence": [],
+   "localization_keys_sample": [],
+   "depends_on": [],
+   "legacy_naming": [],
+   "known_issues": [
+    "onMessage is a single closure: whoever sets it last wins"
+   ],
+   "source_files": [
+    "Realtime/SocketClient.swift",
+    "Realtime/SocketMessages.swift"
+   ]
+  }
+ ],
+ "unassigned_files": [
+  {
+   "file": "Networking/APIClient.swift",
+   "reason": "shared API client, used by every feature"
+  },
+  {
+   "file": "Networking/APIPath.swift",
+   "reason": "path declarations"
+  }
+ ],
+ "open_questions": [
+  "Is the silent retry in send intentional or a workaround for flaky networking?"
+ ]
+}

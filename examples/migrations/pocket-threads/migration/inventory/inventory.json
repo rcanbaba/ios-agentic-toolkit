@@ -1,0 +1,393 @@
+{
+ "schema_version": "1.0",
+ "feature_count": 7,
+ "areas": [
+  {
+   "area": "messaging",
+   "title": "Conversations and realtime",
+   "feature_count": 4
+  },
+  {
+   "area": "settings",
+   "title": "Settings and push",
+   "feature_count": 3
+  }
+ ],
+ "features": [
+  {
+   "id": "thread-list",
+   "name": "Conversation list",
+   "summary": "Shows the user's conversations and opens one on tap. Refreshes when the server reports a thread update.",
+   "user_roles": [
+    "signed-in"
+   ],
+   "criticality": "high",
+   "entry_points": [
+    "app launch (root screen)",
+    "AppRoute.threads"
+   ],
+   "screens": [
+    {
+     "name": "ThreadListView",
+     "file": "Features/Threads/ThreadListView.swift"
+    }
+   ],
+   "user_actions": [
+    "tap a conversation to open it"
+   ],
+   "flow": [
+    "screen appears and loads threads via fetchThreads",
+    "on threadUpdated the list reloads",
+    "tap navigates to the thread route"
+   ],
+   "states_and_edge_cases": [
+    "empty: 'No conversations yet' overlay",
+    "load failure: silently shows an empty list"
+   ],
+   "api_methods": [
+    "fetchThreads"
+   ],
+   "ws_incoming": [
+    "threadUpdated"
+   ],
+   "ws_outgoing": [],
+   "sdk_usage": [],
+   "app_routes": [
+    "threads"
+   ],
+   "push_types": [],
+   "settings_flags": [],
+   "analytics_events": [],
+   "persistence": [],
+   "localization_keys_sample": [
+    "No conversations yet"
+   ],
+   "depends_on": [],
+   "legacy_naming": [],
+   "known_issues": [
+    "load failure is swallowed with try? and shows the empty state"
+   ],
+   "source_files": [
+    "Features/Threads/ThreadListView.swift",
+    "Features/Threads/ThreadListViewModel.swift"
+   ],
+   "area": "messaging"
+  },
+  {
+   "id": "send-message",
+   "name": "Read and send messages in a conversation",
+   "summary": "Opens a conversation, joins its realtime channel, shows incoming messages and typing, and sends new messages with one silent retry.",
+   "user_roles": [
+    "signed-in"
+   ],
+   "criticality": "core",
+   "entry_points": [
+    "tap in conversation list",
+    "push newMessage / mention",
+    "AppRoute.thread"
+   ],
+   "screens": [
+    {
+     "name": "ThreadView",
+     "file": "Features/Thread/ThreadView.swift"
+    }
+   ],
+   "user_actions": [
+    "type a message",
+    "send",
+    "long-press a message to report it"
+   ],
+   "flow": [
+    "open: fetchMessages, send joinThread, subscribe to incoming messages, then markThreadRead",
+    "incoming messageReceived appends to the list",
+    "send: sendMessage, append on success, show error on failure",
+    "close: send leaveThread when the screen disappears"
+   ],
+   "states_and_edge_cases": [
+    "send button disabled while sending or when draft is empty",
+    "send failure: one silent retry, then 'Could not send' is shown",
+    "typing indicator never resets to false"
+   ],
+   "api_methods": [
+    "fetchMessages",
+    "sendMessage",
+    "markThreadRead"
+   ],
+   "ws_incoming": [
+    "messageReceived",
+    "typingStarted"
+   ],
+   "ws_outgoing": [
+    "joinThread",
+    "typing",
+    "leaveThread"
+   ],
+   "sdk_usage": [],
+   "app_routes": [
+    "thread"
+   ],
+   "push_types": [],
+   "settings_flags": [],
+   "analytics_events": [],
+   "persistence": [],
+   "localization_keys_sample": [
+    "Message",
+    "Send",
+    "Could not send"
+   ],
+   "depends_on": [
+    "thread-list",
+    "notification-settings"
+   ],
+   "legacy_naming": [],
+   "known_issues": [
+    "typing action is sent on every keystroke without throttling",
+    "[FALSE_POSITIVE per messaging-core: Features/Thread/ThreadViewModel.swift:52 and ThreadView.swift:24 onDisappear] leaveThread is never sent when the screen closes",
+    "peerIsTyping is set true and never reset"
+   ],
+   "source_files": [
+    "Features/Thread/ThreadView.swift",
+    "Features/Thread/ThreadViewModel.swift"
+   ],
+   "area": "messaging"
+  },
+  {
+   "id": "realtime-connection",
+   "name": "Realtime socket connection",
+   "summary": "Single shared socket that decodes incoming message types and sends outgoing actions.",
+   "user_roles": [
+    "any"
+   ],
+   "criticality": "medium",
+   "entry_points": [
+    "app launch"
+   ],
+   "screens": [],
+   "user_actions": [],
+   "flow": [],
+   "states_and_edge_cases": [
+    "unknown message types are ignored"
+   ],
+   "api_methods": [],
+   "ws_incoming": [],
+   "ws_outgoing": [],
+   "sdk_usage": [],
+   "app_routes": [],
+   "push_types": [],
+   "settings_flags": [],
+   "analytics_events": [],
+   "persistence": [],
+   "localization_keys_sample": [],
+   "depends_on": [],
+   "legacy_naming": [],
+   "known_issues": [
+    "onMessage is a single closure: whoever sets it last wins"
+   ],
+   "source_files": [
+    "Realtime/SocketClient.swift",
+    "Realtime/SocketMessages.swift"
+   ],
+   "area": "messaging"
+  },
+  {
+   "id": "report-message",
+   "name": "Report a message",
+   "summary": "Long-press a message, enter a reason and submit a report.",
+   "user_roles": [
+    "signed-in"
+   ],
+   "criticality": "medium",
+   "entry_points": [
+    "context menu on a message in a conversation"
+   ],
+   "screens": [
+    {
+     "name": "ReportSheet",
+     "file": "Features/Report/ReportSheet.swift"
+    }
+   ],
+   "user_actions": [
+    "enter reason",
+    "submit"
+   ],
+   "flow": [],
+   "states_and_edge_cases": [
+    "submission errors are ignored",
+    "sheet is not dismissed after submit"
+   ],
+   "api_methods": [
+    "reportMessage"
+   ],
+   "ws_incoming": [],
+   "ws_outgoing": [],
+   "sdk_usage": [],
+   "app_routes": [],
+   "push_types": [],
+   "settings_flags": [],
+   "analytics_events": [],
+   "persistence": [],
+   "localization_keys_sample": [
+    "Reason",
+    "Submit"
+   ],
+   "depends_on": [
+    "send-message"
+   ],
+   "legacy_naming": [],
+   "known_issues": [
+    "Router.present does not exist in Router.swift; the call in ThreadViewModel.report would not compile"
+   ],
+   "source_files": [
+    "Features/Report/ReportSheet.swift"
+   ],
+   "verified_addition": "missing-features",
+   "area": "messaging"
+  },
+  {
+   "id": "notification-settings",
+   "name": "Notification preferences",
+   "summary": "Toggles for new-message and mention notifications, saved to the server on every change.",
+   "user_roles": [
+    "signed-in"
+   ],
+   "criticality": "medium",
+   "entry_points": [
+    "Settings > Notifications",
+    "AppRoute.settings(.notifications)"
+   ],
+   "screens": [
+    {
+     "name": "NotificationPreferencesView",
+     "file": "Features/Settings/NotificationPreferencesView.swift"
+    }
+   ],
+   "user_actions": [
+    "toggle new messages",
+    "toggle mentions"
+   ],
+   "flow": [],
+   "states_and_edge_cases": [
+    "save failure is ignored; the toggle stays flipped"
+   ],
+   "api_methods": [
+    "updateNotificationPreferences"
+   ],
+   "ws_incoming": [],
+   "ws_outgoing": [],
+   "sdk_usage": [],
+   "app_routes": [
+    "settings(.notifications)"
+   ],
+   "push_types": [
+    "newMessage",
+    "mention"
+   ],
+   "settings_flags": [],
+   "analytics_events": [],
+   "persistence": [],
+   "localization_keys_sample": [
+    "New messages",
+    "Mentions"
+   ],
+   "depends_on": [],
+   "legacy_naming": [],
+   "known_issues": [],
+   "source_files": [
+    "Features/Settings/NotificationPreferencesView.swift",
+    "Features/Settings/SettingsView.swift"
+   ],
+   "area": "settings"
+  },
+  {
+   "id": "about-screen",
+   "name": "About",
+   "summary": "Shows the app version.",
+   "user_roles": [
+    "any"
+   ],
+   "criticality": "low",
+   "entry_points": [
+    "Settings > About"
+   ],
+   "screens": [
+    {
+     "name": "AboutView",
+     "file": "Features/Settings/AboutView.swift"
+    }
+   ],
+   "user_actions": [],
+   "flow": [],
+   "states_and_edge_cases": [],
+   "api_methods": [],
+   "ws_incoming": [],
+   "ws_outgoing": [],
+   "sdk_usage": [],
+   "app_routes": [
+    "settings(.about)"
+   ],
+   "push_types": [],
+   "settings_flags": [],
+   "analytics_events": [],
+   "persistence": [],
+   "localization_keys_sample": [],
+   "depends_on": [],
+   "legacy_naming": [],
+   "known_issues": [],
+   "source_files": [
+    "Features/Settings/AboutView.swift"
+   ],
+   "area": "settings"
+  },
+  {
+   "id": "push-routing",
+   "name": "Push notification routing",
+   "summary": "Opens the conversation referenced by a new-message or mention push. Other push types are ignored.",
+   "user_roles": [
+    "signed-in"
+   ],
+   "criticality": "high",
+   "entry_points": [
+    "push tap"
+   ],
+   "screens": [],
+   "user_actions": [
+    "tap a push notification"
+   ],
+   "flow": [
+    "decode the push type",
+    "for newMessage / mention navigate to the thread route",
+    "anything else is dropped"
+   ],
+   "states_and_edge_cases": [
+    "push without thread_id is ignored"
+   ],
+   "api_methods": [],
+   "ws_incoming": [],
+   "ws_outgoing": [],
+   "sdk_usage": [],
+   "app_routes": [
+    "thread"
+   ],
+   "push_types": [
+    "newMessage",
+    "mention"
+   ],
+   "settings_flags": [],
+   "analytics_events": [],
+   "persistence": [],
+   "localization_keys_sample": [],
+   "depends_on": [
+    "send-message"
+   ],
+   "legacy_naming": [],
+   "known_issues": [],
+   "source_files": [
+    "Push/PushHandler.swift",
+    "Push/PushType.swift",
+    "Navigation/Router.swift",
+    "Navigation/AppRoute.swift"
+   ],
+   "area": "settings"
+  }
+ ]
+}

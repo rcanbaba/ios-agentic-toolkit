@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rcanbaba/ios-agentic-toolkit/schemas/inventory-verification.schema.json",
+  "title": "Inventory Verification",
+  "description": "Output of one independent verification agent (or the missing-feature hunter). Patches are applied to inventory parts by apply_verification.py. Every patch and verdict carries file:line evidence. A replace patch on a list field must name the exact old item; it swaps one item and never collapses the list.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scope", "verified_features", "patches", "known_issue_checks", "missing_features", "summary"],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.0"] },
+    "scope": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Scope id from verification/scopes.json; also the file name." },
+    "verified_features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "verdict", "flow_complete", "notes"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+          "verdict": { "type": "string", "enum": ["accurate", "corrected", "inaccurate", "not_checked"] },
+          "flow_complete": { "type": "boolean", "description": "Whether the feature's flow (after patches) covers every step the code implements." },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "patches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["feature_id", "field", "action", "value", "evidence"],
+        "properties": {
+          "feature_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Existing feature id, or the new id for field=new_feature." },
+          "field": {
+            "type": "string",
+            "enum": [
+              "name", "summary", "criticality", "user_roles", "entry_points", "screens", "user_actions", "flow",
+              "states_and_edge_cases", "api_methods", "ws_incoming", "ws_outgoing", "sdk_usage", "app_routes",
+              "push_types", "settings_flags", "analytics_events", "persistence", "localization_keys_sample",
+              "depends_on", "legacy_naming", "known_issues", "source_files", "new_feature"
+            ],
+            "description": "Every feature field is patchable. Do not encode a field inside another field's value."
+          },
+          "action": { "type": "string", "enum": ["add", "replace", "remove"], "description": "add/remove items of a list field; replace one list item (old required) or a scalar field. new_feature uses add." },
+          "value": { "type": ["string", "array", "object"], "description": "One item, a list of items (add/remove), a screen object (screens), or a full feature object (new_feature). Never a multi-value string." },
+          "old": { "type": ["string", "object", "null"], "description": "Required for replace on a list field: the exact existing item being replaced. For scalar fields, the current value (optional)." },
+          "evidence": { "type": "string", "pattern": "\\.[A-Za-z0-9]+:[0-9]+", "description": "path/File.swift:line - what the code shows. A line number is required." }
+        }
+      }
+    },
+    "known_issue_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["feature_id", "issue", "verdict", "evidence"],
+        "properties": {
+          "feature_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+          "issue": { "type": "string", "minLength": 1, "description": "The known_issues text being checked (a prefix is enough)." },
+          "verdict": { "type": "string", "enum": ["confirmed", "false_positive", "unclear"] },
+          "evidence": { "type": "string", "pattern": "\\.[A-Za-z0-9]+:[0-9]+", "description": "path/File.swift:line" }
+        }
+      }
+    },
+    "missing_features": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Short description + evidence for each feature missing from the inventory. Each one also needs a new_feature patch."
+    },
+    "summary": { "type": "string", "minLength": 1, "description": "What was checked and the main corrections." }
+  }
+}

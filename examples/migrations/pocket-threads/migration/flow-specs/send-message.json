@@ -1,0 +1,490 @@
+{
+ "schema_version": "1.0",
+ "flow_id": "send-message",
+ "title": "Open a conversation, receive and send messages",
+ "actors": [
+  "user",
+  "server",
+  "realtime socket"
+ ],
+ "related_features": [
+  "send-message",
+  "thread-list"
+ ],
+ "preconditions": [
+  "User is signed in and the conversation list has loaded",
+  "SocketClient.shared is connected (there is no reconnect handling in the client)"
+ ],
+ "states": [
+  {
+   "id": "idle",
+   "actor": "user",
+   "description": "Conversation list is shown; no conversation is open.",
+   "ui": "ThreadListView",
+   "resources": "socket connected, no thread joined"
+  },
+  {
+   "id": "loading",
+   "actor": "user",
+   "description": "ThreadView appeared; messages are being fetched.",
+   "ui": "empty list, composer enabled",
+   "resources": "fetchMessages in flight"
+  },
+  {
+   "id": "open",
+   "actor": "user",
+   "description": "Messages shown; realtime thread joined; read receipt sent.",
+   "ui": "message list, composer, optional typing label",
+   "resources": "thread joined via joinThread; onMessage closure owned by this screen"
+  },
+  {
+   "id": "sending",
+   "actor": "user",
+   "description": "First sendMessage attempt in flight.",
+   "ui": "send button disabled",
+   "resources": "sendMessage in flight"
+  },
+  {
+   "id": "retrying",
+   "actor": "user",
+   "description": "Silent second sendMessage attempt after a failure.",
+   "ui": "send button still disabled, no error yet",
+   "resources": "sendMessage in flight"
+  },
+  {
+   "id": "send_failed",
+   "actor": "user",
+   "description": "Both attempts failed; error label shown; conversation stays open.",
+   "ui": "'Could not send' label under the composer",
+   "resources": "thread still joined"
+  }
+ ],
+ "events": [
+  {
+   "id": "ui_open_thread",
+   "source": "user",
+   "identifier": "ThreadListViewModel.open",
+   "payload": [
+    "thread id"
+   ]
+  },
+  {
+   "id": "api_messages_loaded",
+   "source": "api_response",
+   "identifier": "fetchMessages",
+   "payload": [
+    "messages"
+   ]
+  },
+  {
+   "id": "api_messages_failed",
+   "source": "api_response",
+   "identifier": "fetchMessages",
+   "payload": [
+    "error"
+   ]
+  },
+  {
+   "id": "ws_message_received",
+   "source": "ws",
+   "identifier": "messageReceived",
+   "payload": [
+    "message"
+   ]
+  },
+  {
+   "id": "ws_typing_started",
+   "source": "ws",
+   "identifier": "typingStarted",
+   "payload": []
+  },
+  {
+   "id": "ui_keystroke",
+   "source": "user",
+   "identifier": "TextField.onChange",
+   "payload": [
+    "draft"
+   ]
+  },
+  {
+   "id": "ui_send_tapped",
+   "source": "user",
+   "identifier": "Send button",
+   "payload": [
+    "draft"
+   ]
+  },
+  {
+   "id": "api_send_success",
+   "source": "api_response",
+   "identifier": "sendMessage",
+   "payload": [
+    "message"
+   ]
+  },
+  {
+   "id": "api_send_failed",
+   "source": "api_response",
+   "identifier": "sendMessage",
+   "payload": [
+    "error"
+   ]
+  },
+  {
+   "id": "api_retry_success",
+   "source": "api_response",
+   "identifier": "sendMessage",
+   "payload": [
+    "message"
+   ]
+  },
+  {
+   "id": "api_retry_failed",
+   "source": "api_response",
+   "identifier": "sendMessage",
+   "payload": [
+    "error"
+   ]
+  },
+  {
+   "id": "ui_screen_closed",
+   "source": "user",
+   "identifier": "ThreadView.onDisappear",
+   "payload": []
+  }
+ ],
+ "transitions": [
+  {
+   "from": "idle",
+   "event": "ui_open_thread",
+   "guard": null,
+   "actions": [
+    "ui:navigate(.thread)",
+    "api:fetchMessages"
+   ],
+   "to": "loading",
+   "evidence": "Features/Threads/ThreadListViewModel.swift:15"
+  },
+  {
+   "from": "loading",
+   "event": "api_messages_loaded",
+   "guard": null,
+   "actions": [
+    "ui:show messages",
+    "ws_out:joinThread",
+    "ui:subscribe onMessage",
+    "api:markThreadRead"
+   ],
+   "to": "open",
+   "evidence": "Features/Thread/ThreadViewModel.swift:14"
+  },
+  {
+   "from": "loading",
+   "event": "api_messages_failed",
+   "guard": null,
+   "actions": [
+    "ui:show empty list (error swallowed)",
+    "ws_out:joinThread",
+    "ui:subscribe onMessage",
+    "api:markThreadRead"
+   ],
+   "to": "open",
+   "evidence": "Features/Thread/ThreadViewModel.swift:15"
+  },
+  {
+   "from": "open",
+   "event": "ws_message_received",
+   "guard": "payload decodes to a Message",
+   "actions": [
+    "ui:append message"
+   ],
+   "to": "open",
+   "evidence": "Features/Thread/ThreadViewModel.swift:19"
+  },
+  {
+   "from": "open",
+   "event": "ws_typing_started",
+   "guard": null,
+   "actions": [
+    "ui:show typing label (never hidden again)"
+   ],
+   "to": "open",
+   "evidence": "Features/Thread/ThreadViewModel.swift:21"
+  },
+  {
+   "from": "open",
+   "event": "ui_keystroke",
+   "guard": null,
+   "actions": [
+    "ws_out:typing"
+   ],
+   "to": "open",
+   "evidence": "Features/Thread/ThreadView.swift:16"
+  },
+  {
+   "from": "open",
+   "event": "ui_send_tapped",
+   "guard": "draft not empty and not sending",
+   "actions": [
+    "ui:disable send",
+    "api:sendMessage"
+   ],
+   "to": "sending",
+   "evidence": "Features/Thread/ThreadViewModel.swift:30"
+  },
+  {
+   "from": "send_failed",
+   "event": "ui_send_tapped",
+   "guard": "draft not empty and not sending",
+   "actions": [
+    "ui:disable send",
+    "api:sendMessage"
+   ],
+   "to": "sending",
+   "evidence": "Features/Thread/ThreadViewModel.swift:30"
+  },
+  {
+   "from": "sending",
+   "event": "api_send_success",
+   "guard": null,
+   "actions": [
+    "ui:append message",
+    "ui:clear error",
+    "ui:enable send"
+   ],
+   "to": "open",
+   "evidence": "Features/Thread/ThreadViewModel.swift:34"
+  },
+  {
+   "from": "sending",
+   "event": "api_send_failed",
+   "guard": null,
+   "actions": [
+    "api:sendMessage (silent retry)"
+   ],
+   "to": "retrying",
+   "evidence": "Features/Thread/ThreadViewModel.swift:38"
+  },
+  {
+   "from": "retrying",
+   "event": "api_retry_success",
+   "guard": null,
+   "actions": [
+    "ui:append message",
+    "ui:enable send"
+   ],
+   "to": "open",
+   "evidence": "Features/Thread/ThreadViewModel.swift:39"
+  },
+  {
+   "from": "retrying",
+   "event": "api_retry_failed",
+   "guard": null,
+   "actions": [
+    "ui:show 'Could not send'",
+    "ui:enable send"
+   ],
+   "to": "send_failed",
+   "evidence": "Features/Thread/ThreadViewModel.swift:41"
+  },
+  {
+   "from": "*",
+   "event": "ui_screen_closed",
+   "guard": null,
+   "actions": [
+    "ws_out:leaveThread"
+   ],
+   "to": "idle",
+   "evidence": "Features/Thread/ThreadViewModel.swift:52"
+  }
+ ],
+ "invariants": [
+  {
+   "id": "INV-1",
+   "statement": "Every joinThread is followed by exactly one leaveThread when the screen disappears.",
+   "evidence": "Features/Thread/ThreadView.swift:24"
+  },
+  {
+   "id": "INV-2",
+   "statement": "At most one sendMessage sequence is in flight; the send button is disabled meanwhile.",
+   "evidence": "Features/Thread/ThreadView.swift:18"
+  }
+ ],
+ "interruptions": [
+  {
+   "id": "INT-1",
+   "situation": "app goes to background and returns",
+   "current_behavior": "Nothing happens: no leave, no re-join, no refetch; the socket state is whatever the system left.",
+   "evidence": "Realtime/SocketClient.swift:7"
+  },
+  {
+   "id": "INT-2",
+   "situation": "socket reconnects while the conversation is open",
+   "current_behavior": "No joinThread is re-sent; incoming messages for this thread are lost until the screen is reopened.",
+   "evidence": "Realtime/SocketClient.swift:9"
+  }
+ ],
+ "failure_handling": [
+  {
+   "id": "FH-1",
+   "situation": "fetchMessages fails",
+   "current_behavior": "Empty list, no error shown; the thread is still joined and marked read.",
+   "evidence": "Features/Thread/ThreadViewModel.swift:15"
+  },
+  {
+   "id": "FH-2",
+   "situation": "sendMessage fails twice",
+   "current_behavior": "'Could not send' label; draft is cleared by the view regardless.",
+   "evidence": "Features/Thread/ThreadViewModel.swift:41"
+  },
+  {
+   "id": "FH-3",
+   "situation": "markThreadRead fails",
+   "current_behavior": "Ignored (try?). Unread badge stays until the next successful open.",
+   "evidence": "Features/Thread/ThreadViewModel.swift:27"
+  }
+ ],
+ "cross_flow_interactions": [
+  "Opening a conversation from a push while the list is visible replaces the list's onMessage closure, so the list stops refreshing on threadUpdated until it reloads (single-closure socket)."
+ ],
+ "as_is_bugs": [
+  {
+   "description": "peerIsTyping is set true on typingStarted and never reset.",
+   "evidence": "Features/Thread/ThreadViewModel.swift:21",
+   "impact": "typing label stays visible for the rest of the session"
+  },
+  {
+   "description": "The draft is cleared by the view after send even when both attempts failed.",
+   "evidence": "Features/Thread/ThreadView.swift:17",
+   "impact": "user loses the message text on failure"
+  }
+ ],
+ "open_decisions": [
+  {
+   "id": "OD-1",
+   "question": "Re-join the thread and refetch messages after a socket reconnect or foreground?",
+   "current_behavior": "Nothing is re-sent.",
+   "options": [
+    "replicate current behavior",
+    "re-join and refetch on reconnect/foreground"
+   ],
+   "rule": "A1",
+   "decision": "Yes: re-join and refetch (rule A1)",
+   "decided_on": "2026-01-15"
+  },
+  {
+   "id": "OD-2",
+   "question": "Keep the draft when sending fails?",
+   "current_behavior": "Draft is cleared.",
+   "options": [
+    "replicate current behavior",
+    "keep the draft and show the error"
+   ],
+   "rule": null,
+   "decision": "defer to porting; default rule: replicate current behavior",
+   "decided_on": "2026-01-15"
+  },
+  {
+   "id": "OD-3",
+   "question": "Throttle the typing action?",
+   "current_behavior": "Sent on every keystroke.",
+   "options": [
+    "replicate current behavior",
+    "throttle to one per 2 seconds"
+   ],
+   "rule": null,
+   "decision": "defer to porting; default rule: replicate current behavior",
+   "decided_on": "2026-01-15"
+  }
+ ],
+ "cross_cutting_decisions": [
+  {
+   "id": "A1",
+   "rule": "After background, network loss or socket reconnect, re-join realtime channels and resync state from the server.",
+   "decision": "Yes, one resync routine per active session"
+  }
+ ],
+ "acceptance_tests": [
+  {
+   "id": "AT-1",
+   "priority": "p0",
+   "given": "a conversation with messages",
+   "when": "the user opens it and sends a message",
+   "then": "messages load, joinThread and markThreadRead are sent, the message appears after sendMessage succeeds",
+   "covers": [
+    "happy_path"
+   ]
+  },
+  {
+   "id": "AT-2",
+   "priority": "p0",
+   "given": "sendMessage fails twice",
+   "when": "the user sends",
+   "then": "'Could not send' is shown and the conversation stays open",
+   "covers": [
+    "FH-2"
+   ]
+  },
+  {
+   "id": "AT-3",
+   "priority": "p1",
+   "given": "fetchMessages fails",
+   "when": "the conversation opens",
+   "then": "the list is empty, the thread is still joined and marked read",
+   "covers": [
+    "FH-1",
+    "FH-3"
+   ]
+  },
+  {
+   "id": "AT-4",
+   "priority": "p1",
+   "given": "an open conversation",
+   "when": "the app goes to background and returns",
+   "then": "no leave or re-join is sent (as-is)",
+   "covers": [
+    "INT-1"
+   ]
+  },
+  {
+   "id": "AT-5",
+   "priority": "p1",
+   "given": "an open conversation",
+   "when": "the socket reconnects",
+   "then": "no joinThread is re-sent (as-is; changes under rule A1)",
+   "covers": [
+    "INT-2"
+   ]
+  },
+  {
+   "id": "AT-6",
+   "priority": "p0",
+   "given": "an open conversation",
+   "when": "the screen disappears",
+   "then": "exactly one leaveThread is sent",
+   "covers": [
+    "INV-1"
+   ]
+  },
+  {
+   "id": "AT-7",
+   "priority": "p1",
+   "given": "a send in flight",
+   "when": "the user taps send again",
+   "then": "no second sendMessage is started",
+   "covers": [
+    "INV-2"
+   ]
+  }
+ ],
+ "excluded_identifiers": [
+  {
+   "identifier": "fetchThreads",
+   "reason": "list loading belongs to the conversation-list flow"
+  },
+  {
+   "identifier": "threadUpdated",
+   "reason": "list refresh belongs to the conversation-list flow"
+  }
+ ]
+}

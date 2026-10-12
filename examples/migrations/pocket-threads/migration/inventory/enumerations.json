@@ -1,0 +1,254 @@
+{
+ "schema_version": "1.0",
+ "source_root": "../../source",
+ "keys": {
+  "api_client_methods": {
+   "kind": "methods",
+   "field": "api_methods",
+   "source": "Networking/APIClient.swift",
+   "count": 7,
+   "cases": [
+    {
+     "name": "fetchThreads",
+     "access": "public",
+     "path": "threads"
+    },
+    {
+     "name": "fetchMessages",
+     "access": "internal",
+     "path": "messages"
+    },
+    {
+     "name": "sendMessage",
+     "access": "internal",
+     "path": "send"
+    },
+    {
+     "name": "markThreadRead",
+     "access": "internal",
+     "path": "markRead"
+    },
+    {
+     "name": "updateNotificationPreferences",
+     "access": "internal",
+     "path": "notificationPrefs"
+    },
+    {
+     "name": "deleteAccount",
+     "access": "internal",
+     "path": "deleteAccount"
+    },
+    {
+     "name": "reportMessage",
+     "access": "internal",
+     "path": "report"
+    }
+   ]
+  },
+  "api_paths": {
+   "kind": "enum",
+   "field": null,
+   "source": "Networking/APIPath.swift",
+   "count": 7,
+   "cases": [
+    {
+     "name": "threads",
+     "raw": "/threads"
+    },
+    {
+     "name": "messages",
+     "raw": "/threads/{id}/messages"
+    },
+    {
+     "name": "send",
+     "raw": "/threads/{id}/send"
+    },
+    {
+     "name": "markRead",
+     "raw": "/threads/{id}/read"
+    },
+    {
+     "name": "notificationPrefs",
+     "raw": "/me/notifications"
+    },
+    {
+     "name": "deleteAccount",
+     "raw": "/me/delete"
+    },
+    {
+     "name": "report",
+     "raw": "/messages/{id}/report"
+    }
+   ]
+  },
+  "ws_incoming_message_types": {
+   "kind": "enum",
+   "field": "ws_incoming",
+   "source": "Realtime/SocketMessages.swift",
+   "count": 3,
+   "cases": [
+    {
+     "name": "messageReceived",
+     "raw": "message_received"
+    },
+    {
+     "name": "typingStarted",
+     "raw": "typing_started"
+    },
+    {
+     "name": "threadUpdated",
+     "raw": "thread_updated"
+    }
+   ]
+  },
+  "ws_outgoing_action_types": {
+   "kind": "enum",
+   "field": "ws_outgoing",
+   "source": "Realtime/SocketMessages.swift",
+   "count": 3,
+   "cases": [
+    {
+     "name": "joinThread",
+     "raw": "join_thread"
+    },
+    {
+     "name": "leaveThread",
+     "raw": "leave_thread"
+    },
+    {
+     "name": "typing",
+     "raw": "typing"
+    }
+   ]
+  },
+  "app_routes": {
+   "kind": "enum",
+   "field": "app_routes",
+   "source": "Navigation/AppRoute.swift",
+   "count": 3,
+   "cases": [
+    {
+     "name": "threads",
+     "raw": null
+    },
+    {
+     "name": "thread",
+     "raw": null
+    },
+    {
+     "name": "settings",
+     "raw": null
+    }
+   ]
+  },
+  "settings_sub_routes": {
+   "kind": "enum",
+   "field": "app_routes",
+   "source": "Navigation/AppRoute.swift",
+   "count": 2,
+   "cases": [
+    {
+     "name": "notifications",
+     "raw": null
+    },
+    {
+     "name": "about",
+     "raw": null
+    }
+   ]
+  },
+  "push_types": {
+   "kind": "enum",
+   "field": "push_types",
+   "source": "Push/PushType.swift",
+   "count": 3,
+   "cases": [
+    {
+     "name": "newMessage",
+     "raw": "new_message"
+    },
+    {
+     "name": "mention",
+     "raw": "mention"
+    },
+    {
+     "name": "digest",
+     "raw": "digest"
+    }
+   ]
+  }
+ },
+ "source_files": {
+  "count": 17,
+  "cases": [
+   {
+    "path": "Features/Report/ReportSheet.swift",
+    "lines": 15
+   },
+   {
+    "path": "Features/Settings/AboutView.swift",
+    "lines": 5
+   },
+   {
+    "path": "Features/Settings/NotificationPreferencesView.swift",
+    "lines": 15
+   },
+   {
+    "path": "Features/Settings/SettingsView.swift",
+    "lines": 10
+   },
+   {
+    "path": "Features/Thread/ThreadView.swift",
+    "lines": 25
+   },
+   {
+    "path": "Features/Thread/ThreadViewModel.swift",
+    "lines": 57
+   },
+   {
+    "path": "Features/Threads/ThreadListView.swift",
+    "lines": 13
+   },
+   {
+    "path": "Features/Threads/ThreadListViewModel.swift",
+    "lines": 17
+   },
+   {
+    "path": "Navigation/AppRoute.swift",
+    "lines": 10
+   },
+   {
+    "path": "Navigation/Router.swift",
+    "lines": 12
+   },
+   {
+    "path": "Networking/APIClient.swift",
+    "lines": 45
+   },
+   {
+    "path": "Networking/APIPath.swift",
+    "lines": 9
+   },
+   {
+    "path": "Push/PushHandler.swift",
+    "lines": 13
+   },
+   {
+    "path": "Push/PushType.swift",
+    "lines": 5
+   },
+   {
+    "path": "Realtime/SocketClient.swift",
+    "lines": 17
+   },
+   {
+    "path": "Realtime/SocketMessages.swift",
+    "lines": 11
+   },
+   {
+    "path": "Shared/RelativeDateFormatter.swift",
+    "lines": 7
+   }
+  ]
+ }
+}
