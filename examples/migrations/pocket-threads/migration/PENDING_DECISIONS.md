@@ -1,0 +1,21 @@
+# Pending decisions from flow specs
+
+3 open questions came out of 1 flow spec. Grouped as: cross-cutting rules (decide once),
+a default rule, and flow-specific questions deferred to porting time.
+
+## A. Cross-cutting rules — DECIDED 2026-01-15 (see DECISIONS.md)
+
+| # | Rule | Flows | Recommendation |
+|---|---|---|---|
+| A1 | After background, network loss or socket reconnect, re-join realtime channels and resync state from the server | send-message | Yes: one resync routine per active session |
+
+## B. Default rule
+
+Replicate current behavior unless a decision in DECISIONS.md says otherwise.
+
+## C. Flow-specific questions (decide at porting time)
+
+### send-message (2)
+
+- OD-2 Keep the draft when sending fails? (current: cleared)
+- OD-3 Throttle the typing action? (current: every keystroke)

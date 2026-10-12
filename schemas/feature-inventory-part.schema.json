@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rcanbaba/ios-agentic-toolkit/schemas/feature-inventory-part.schema.json",
+  "title": "Feature Inventory Part",
+  "description": "One area agent's share of the feature inventory. Identifier fields hold exact names from enumerations.json, one identifier per item. Every source file under assigned_paths is either claimed by a feature or listed in unassigned_files.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "area", "assigned_paths", "features", "unassigned_files", "open_questions"],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.0"] },
+    "area": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Kebab-case area id; also the part file name." },
+    "title": { "type": "string", "minLength": 1, "description": "Optional human heading for the rendered inventory." },
+    "assigned_paths": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Directories or files relative to the source root that this part is responsible for."
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id", "name", "summary", "user_roles", "criticality", "entry_points", "screens", "user_actions",
+          "flow", "states_and_edge_cases", "api_methods", "ws_incoming", "ws_outgoing", "sdk_usage",
+          "app_routes", "push_types", "settings_flags", "analytics_events", "persistence",
+          "localization_keys_sample", "depends_on", "legacy_naming", "known_issues", "source_files"
+        ],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Unique across all parts." },
+          "name": { "type": "string", "minLength": 1 },
+          "summary": { "type": "string", "minLength": 1, "description": "What it does for the user, 1-3 sentences, as-is." },
+          "user_roles": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "criticality": { "type": "string", "enum": ["core", "high", "medium", "low"] },
+          "entry_points": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "How the user gets here: tab, button on screen X, route case, deeplink, push type, realtime event." },
+          "screens": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "file"],
+              "properties": {
+                "name": { "type": "string", "minLength": 1, "description": "Type name of the view / view controller." },
+                "file": { "type": "string", "minLength": 1, "description": "Path relative to the source root." }
+              }
+            }
+          },
+          "user_actions": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Every action the user can take, including secondary, long-press, menu and sheet actions." },
+          "flow": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Ordered steps / state transitions. Required (non-empty) for core and high criticality." },
+          "states_and_edge_cases": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Loading, empty, error, permission denied, offline, backgrounding, interruption, limits, role changes." },
+          "api_methods": { "type": "array", "items": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" }, "description": "Exact API client method names from enumerations.json, one per item." },
+          "ws_incoming": { "type": "array", "items": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" }, "description": "Exact incoming realtime message case names, one per item." },
+          "ws_outgoing": { "type": "array", "items": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" }, "description": "Exact outgoing realtime action case names, one per item." },
+          "sdk_usage": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Third-party SDK calls that matter (media engine, payments, animation, ...)." },
+          "app_routes": { "type": "array", "items": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*(\\(\\.[A-Za-z_][A-Za-z0-9_]*\\))?$" }, "description": "Exact route case names, optionally with one sub-route: route or route(.subRoute)." },
+          "push_types": { "type": "array", "items": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" }, "description": "Exact push notification type case names, one per item." },
+          "settings_flags": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Remote/local settings fields or feature flags that gate or tune the feature." },
+          "analytics_events": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "persistence": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "UserDefaults / Keychain / database / cache keys." },
+          "localization_keys_sample": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "depends_on": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" }, "description": "Other feature ids, any area. Exact ids only; unknown ids are reported by the merge and resolved by reconciliation." },
+          "legacy_naming": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Inconsistent or historical names: types, JSON keys, file names." },
+          "known_issues": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "TODO/FIXME, fragile code, dead code, half-finished parts. As observed, no fixes proposed." },
+          "source_files": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "description": "Every file implementing the feature, relative to the source root, one path per item." },
+          "verified_addition": { "type": "string", "description": "Set by apply_verification.py: the verification scope that added this feature." },
+          "merged_from": { "type": "array", "items": { "type": "string" }, "description": "Set by reconcile_inventory.py: ids of duplicate features merged into this one." },
+          "migration_notes": { "type": "array", "items": { "type": "string" }, "description": "Decisions recorded against this feature (see DECISIONS.md)." }
+        }
+      }
+    },
+    "unassigned_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["file", "reason"],
+        "properties": {
+          "file": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1, "description": "dead code / shared utility / unclear / belongs to another area." }
+        }
+      }
+    },
+    "open_questions": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Things that could not be determined from code. Guesses go here, not into features." }
+  }
+}

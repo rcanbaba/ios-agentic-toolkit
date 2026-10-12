@@ -1,0 +1,57 @@
+{
+ "schema_version": "1.0",
+ "parts": [
+  "messaging",
+  "settings"
+ ],
+ "feature_count": 7,
+ "coverage": {
+  "api_methods": {
+   "known": 7,
+   "referenced": 6,
+   "unreferenced": [
+    "deleteAccount"
+   ]
+  },
+  "ws_incoming": {
+   "known": 3,
+   "referenced": 3,
+   "unreferenced": []
+  },
+  "ws_outgoing": {
+   "known": 3,
+   "referenced": 3,
+   "unreferenced": []
+  },
+  "push_types": {
+   "known": 3,
+   "referenced": 2,
+   "unreferenced": [
+    "digest"
+   ]
+  },
+  "app_routes": {
+   "known": 5,
+   "referenced": 5,
+   "unreferenced": []
+  }
+ },
+ "unknown_identifiers": {
+  "api_methods": [],
+  "ws_incoming": [],
+  "ws_outgoing": [],
+  "push_types": [],
+  "app_routes": []
+ },
+ "files": {
+  "total": 17,
+  "covered": 17,
+  "uncovered": [],
+  "nonexistent_claimed": [],
+  "claimed_by_multiple": {}
+ },
+ "dangling_depends_on": [],
+ "duplicate_ids": {},
+ "core_high_without_flow": [],
+ "problems": []
+}

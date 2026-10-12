@@ -1,0 +1,4 @@
+{
+  "messaging-core": {"features": ["send-message", "thread-list"], "flow": "open a conversation, send a message, receive one"},
+  "missing-features": {"features": [], "flow": "sweep every interaction site, push type and flag for features absent from the inventory"}
+}

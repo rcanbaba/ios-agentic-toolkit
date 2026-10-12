@@ -1,0 +1,32 @@
+{
+ "schema_version": "1.0",
+ "scope": "messaging-core",
+ "verified_features": [
+  {"id": "send-message", "verdict": "corrected", "flow_complete": true, "notes": "flow missed read receipt and leave; one known issue was wrong"},
+  {"id": "thread-list", "verdict": "accurate", "flow_complete": true, "notes": ""}
+ ],
+ "patches": [
+  {"feature_id": "send-message", "field": "flow", "action": "replace",
+   "old": "open: fetchMessages, then join the realtime thread",
+   "value": "open: fetchMessages, send joinThread, subscribe to incoming messages, then markThreadRead",
+   "evidence": "Features/Thread/ThreadViewModel.swift:14-27 - open() calls fetchMessages, joinThread, sets onMessage, then markThreadRead"},
+  {"feature_id": "send-message", "field": "flow", "action": "add",
+   "value": "close: send leaveThread when the screen disappears",
+   "evidence": "Features/Thread/ThreadViewModel.swift:52 - close() sends .leaveThread; ThreadView.swift:24 calls it onDisappear"},
+  {"feature_id": "send-message", "field": "states_and_edge_cases", "action": "add",
+   "value": ["send failure: one silent retry, then 'Could not send' is shown", "typing indicator never resets to false"],
+   "evidence": "Features/Thread/ThreadViewModel.swift:30-43 and :21"},
+  {"feature_id": "send-message", "field": "known_issues", "action": "add",
+   "value": "peerIsTyping is set true and never reset",
+   "evidence": "Features/Thread/ThreadViewModel.swift:21"},
+  {"feature_id": "send-message", "field": "api_methods", "action": "add",
+   "value": "markThreadRead",
+   "evidence": "Features/Thread/ThreadViewModel.swift:27"}
+ ],
+ "known_issue_checks": [
+  {"feature_id": "send-message", "issue": "typing action is sent on every keystroke", "verdict": "confirmed", "evidence": "Features/Thread/ThreadView.swift:16 onChange calls typing() with no throttle"},
+  {"feature_id": "send-message", "issue": "leaveThread is never sent", "verdict": "false_positive", "evidence": "Features/Thread/ThreadViewModel.swift:52 and ThreadView.swift:24 onDisappear"}
+ ],
+ "missing_features": [],
+ "summary": "Checked send-message and thread-list against the view models. Corrected the open flow, added close, read receipt and failure handling; one known issue was a false positive."
+}

@@ -1,0 +1,31 @@
+{
+ "schema_version": "1.0",
+ "scope": "missing-features",
+ "verified_features": [],
+ "patches": [
+  {"feature_id": "report-message", "field": "new_feature", "action": "add",
+   "value": {
+    "id": "report-message",
+    "name": "Report a message",
+    "summary": "Long-press a message, enter a reason and submit a report.",
+    "user_roles": ["signed-in"],
+    "criticality": "medium",
+    "entry_points": ["context menu on a message in a conversation"],
+    "screens": [{"name": "ReportSheet", "file": "Features/Report/ReportSheet.swift"}],
+    "user_actions": ["enter reason", "submit"],
+    "flow": [],
+    "states_and_edge_cases": ["submission errors are ignored", "sheet is not dismissed after submit"],
+    "api_methods": ["reportMessage"],
+    "ws_incoming": [], "ws_outgoing": [], "sdk_usage": [], "app_routes": [], "push_types": [],
+    "settings_flags": [], "analytics_events": [], "persistence": [], "localization_keys_sample": ["Reason", "Submit"],
+    "depends_on": ["send-message"],
+    "legacy_naming": [],
+    "known_issues": ["Router.present does not exist in Router.swift; the call in ThreadViewModel.report would not compile"],
+    "source_files": ["Features/Report/ReportSheet.swift"]
+   },
+   "evidence": "Features/Report/ReportSheet.swift:1-16 and Features/Thread/ThreadView.swift:11 contextMenu Report"}
+ ],
+ "known_issue_checks": [],
+ "missing_features": ["Report a message from the conversation context menu - Features/Report/ReportSheet.swift, not claimed by any feature"],
+ "summary": "Swept every Button, contextMenu, onChange, push case and route. One feature was missing: reporting a message."
+}

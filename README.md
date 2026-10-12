@@ -17,6 +17,7 @@ refined by grading real runs.
 |---|---|---|
 | [Crash Investigation & Fix](docs/workflows/crash-investigation.md) | Read-only Crashlytics investigation with ranked, evidence-backed hypotheses, followed by an approval-gated minimal fix and honest verification | **Implemented**, refined in real use |
 | [Design System](docs/workflows/design-system.md) | Reference screenshots + your direction → original design-system contract, generated SwiftUI tokens and a rendered specimen | **Implemented**, refined in real use |
+| [App Migration](docs/workflows/app-migration.md) | Deterministic baseline from code + parallel area agents + independent verification → complete, verified feature inventory; then validated as-is flow specs and a decision log for porting a legacy app | **Implemented**, derived from one real run |
 | SwiftUI UI Implementation | Implements screens using the design-system contract and generated tokens, within the existing project architecture | Planned |
 | Visual Review | Compares implemented UI with design-system rules and feeds violations back to implementation | Planned |
 | App Store Metadata | Description, subtitle, keywords and review notes | Planned |
@@ -53,7 +54,7 @@ needs it.
 |---|---|---|
 | **Rule** | A domain-independent engineering constraint shared by all workflows | [`rules/`](rules/ios-engineering.md) |
 | **Skill** | Knowledge and procedure for one task, loaded on demand | [`skills/<name>/SKILL.md`](skills/) |
-| **Agent / subagent** | A separate reasoning context, used only when isolation or focus clearly pays off | None yet |
+| **Agent / subagent** | A separate reasoning context, used only when isolation or focus clearly pays off | Parallel area agents and independent verifiers in [App Migration](docs/workflows/app-migration.md#design-decisions) |
 | **Contract** | Structured output that a later step, human or eval consumes | [`schemas/`](schemas/) |
 | **Tool** | A deterministic program the agent runs and observes | [`scripts/`](scripts/), `xcodebuild`, `simctl`, `git` |
 | **Workflow** | Skills, deterministic steps and human decisions put together for one area of work | [`docs/workflows/`](docs/workflows/) |

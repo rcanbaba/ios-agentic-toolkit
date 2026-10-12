@@ -1,0 +1,86 @@
+{
+ "applied": [
+  {
+   "scope": "messaging-core",
+   "fingerprint": "7338792da7e6e21c",
+   "feature_id": "send-message",
+   "field": "flow",
+   "action": "replace",
+   "old": "open: fetchMessages, then join the realtime thread",
+   "evidence": "Features/Thread/ThreadViewModel.swift:14-27 - open() calls fetchMessages, joinThread, sets onMessage, then markThreadRead",
+   "value_preview": "\"open: fetchMessages, send joinThread, subscribe to incoming messages, then markThreadRead\""
+  },
+  {
+   "scope": "messaging-core",
+   "fingerprint": "d988cf0009d9e145",
+   "feature_id": "send-message",
+   "field": "flow",
+   "action": "add",
+   "evidence": "Features/Thread/ThreadViewModel.swift:52 - close() sends .leaveThread; ThreadView.swift:24 calls it onDisappear",
+   "value_preview": "\"close: send leaveThread when the screen disappears\"",
+   "added": 1
+  },
+  {
+   "scope": "messaging-core",
+   "fingerprint": "f21d2a020fb0493d",
+   "feature_id": "send-message",
+   "field": "states_and_edge_cases",
+   "action": "add",
+   "evidence": "Features/Thread/ThreadViewModel.swift:30-43 and :21",
+   "value_preview": "[\"send failure: one silent retry, then 'Could not send' is shown\", \"typing indicator never resets to false\"]",
+   "added": 2
+  },
+  {
+   "scope": "messaging-core",
+   "fingerprint": "9b03d40023a1a886",
+   "feature_id": "send-message",
+   "field": "known_issues",
+   "action": "add",
+   "evidence": "Features/Thread/ThreadViewModel.swift:21",
+   "value_preview": "\"peerIsTyping is set true and never reset\"",
+   "added": 1
+  },
+  {
+   "scope": "messaging-core",
+   "fingerprint": "4135151a1aac334c",
+   "feature_id": "send-message",
+   "field": "api_methods",
+   "action": "add",
+   "evidence": "Features/Thread/ThreadViewModel.swift:27",
+   "value_preview": "\"markThreadRead\"",
+   "added": 0
+  },
+  {
+   "scope": "missing-features",
+   "fingerprint": "f00abee98312b932",
+   "feature_id": "report-message",
+   "field": "new_feature",
+   "action": "add",
+   "evidence": "Features/Report/ReportSheet.swift:1-16 and Features/Thread/ThreadView.swift:11 contextMenu Report",
+   "value_preview": "{\"id\": \"report-message\", \"name\": \"Report a message\", \"summary\": \"Long-press a message, enter a reason and submit a report.\", \"user_roles\": [\"signed-in\"], \"criti",
+   "part": "messaging"
+  }
+ ],
+ "skipped": [],
+ "known_issue_checks": [
+  {
+   "scope": "messaging-core",
+   "fingerprint": "bd81f8fbee286d65",
+   "feature_id": "send-message",
+   "issue": "typing action is sent on every keystroke",
+   "verdict": "confirmed",
+   "evidence": "Features/Thread/ThreadView.swift:16 onChange calls typing() with no throttle",
+   "annotated": null
+  },
+  {
+   "scope": "messaging-core",
+   "fingerprint": "998557772204cf14",
+   "feature_id": "send-message",
+   "issue": "leaveThread is never sent",
+   "verdict": "false_positive",
+   "evidence": "Features/Thread/ThreadViewModel.swift:52 and ThreadView.swift:24 onDisappear",
+   "annotated": "leaveThread is never sent when the screen closes"
+  }
+ ],
+ "invalid_files": []
+}

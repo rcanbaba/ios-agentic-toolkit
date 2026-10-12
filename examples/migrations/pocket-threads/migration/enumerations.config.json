@@ -1,0 +1,23 @@
+{
+  "source_root": "source",
+  "file_extensions": [".swift"],
+  "exclude_dirs": ["Pods", ".build", "DerivedData"],
+  "extract": [
+    {"key": "api_client_methods", "kind": "methods", "field": "api_methods",
+     "file": "Networking/APIClient.swift", "type": "APIClient",
+     "path_pattern": "RequestConfiguration\\(path:\\s*\\.(\\w+)", "include_private": false},
+    {"key": "api_paths", "kind": "enum", "field": null, "enum": "APIPath", "hint_dir": "Networking"},
+    {"key": "ws_incoming_message_types", "kind": "enum", "field": "ws_incoming", "enum": "IncomingMessageType", "hint_dir": "Realtime"},
+    {"key": "ws_outgoing_action_types", "kind": "enum", "field": "ws_outgoing", "enum": "OutgoingActionType", "hint_dir": "Realtime"},
+    {"key": "app_routes", "kind": "enum", "field": "app_routes", "enum": "AppRoute", "hint_dir": "Navigation"},
+    {"key": "settings_sub_routes", "kind": "enum", "field": "app_routes", "enum": "SettingsRoute", "hint_dir": "Navigation"},
+    {"key": "push_types", "kind": "enum", "field": "push_types", "enum": "PushType", "hint_dir": "Push"}
+  ],
+  "call_site_patterns": {
+    "api_methods": ["\\.{name}\\("],
+    "ws_incoming": ["case\\s+\\.{name}\\b", "==\\s*\\.{name}\\b"],
+    "ws_outgoing": ["send\\(\\.{name}\\b"],
+    "push_types": ["case\\s+\\.{name}\\b", "\\.{name},"],
+    "app_routes": ["navigate\\(to:\\s*\\.{name}\\b", "\\(\\.{name}\\)"]
+  }
+}

@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "ios-agentic-toolkit",
-      "description": "Evidence-first crash analysis and approval-gated crash fixing for iOS projects.",
+      "description": "Supervised agentic iOS workflows: crash investigation and fixing, design systems, and legacy app migration.",
       "source": "./",
       "category": "development"
     }
