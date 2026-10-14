@@ -2,22 +2,23 @@
  "applied": [
   {
    "scope": "messaging-core",
-   "fingerprint": "7338792da7e6e21c",
+   "fingerprint": "11217fbb2068a438",
    "feature_id": "send-message",
    "field": "flow",
    "action": "replace",
-   "old": "open: fetchMessages, then join the realtime thread",
-   "evidence": "Features/Thread/ThreadViewModel.swift:14-27 - open() calls fetchMessages, joinThread, sets onMessage, then markThreadRead",
-   "value_preview": "\"open: fetchMessages, send joinThread, subscribe to incoming messages, then markThreadRead\""
+   "old": "open: fetchMessages, then join",
+   "evidence": "Features/Thread/ThreadViewModel.swift:13-26 - open() calls fetchMessages, joinThread, sets onMessage, then markThreadRead",
+   "value_preview": "\"open: fetchMessages, send joinThread, subscribe to incoming messages, then markThreadRead (Features/Thread/ThreadViewModel.swift:13-26)\"",
+   "matched_prefix": "open: fetchMessages, then join the realtime thread (Features/Thread/ThreadViewModel.swift:13-15)"
   },
   {
    "scope": "messaging-core",
-   "fingerprint": "d988cf0009d9e145",
+   "fingerprint": "b8cfb6f59d066767",
    "feature_id": "send-message",
    "field": "flow",
    "action": "add",
-   "evidence": "Features/Thread/ThreadViewModel.swift:52 - close() sends .leaveThread; ThreadView.swift:24 calls it onDisappear",
-   "value_preview": "\"close: send leaveThread when the screen disappears\"",
+   "evidence": "Features/Thread/ThreadViewModel.swift:54-55 - close() sends .leaveThread; ThreadView.swift:23 calls it onDisappear",
+   "value_preview": "\"close: send leaveThread when the screen disappears (Features/Thread/ThreadViewModel.swift:54-55, ThreadView.swift:23)\"",
    "added": 1
   },
   {
@@ -42,11 +43,11 @@
   },
   {
    "scope": "messaging-core",
-   "fingerprint": "4135151a1aac334c",
+   "fingerprint": "7cdc646aa0ecc4a2",
    "feature_id": "send-message",
    "field": "api_methods",
    "action": "add",
-   "evidence": "Features/Thread/ThreadViewModel.swift:27",
+   "evidence": "Features/Thread/ThreadViewModel.swift:26",
    "value_preview": "\"markThreadRead\"",
    "added": 0
   },
@@ -59,9 +60,18 @@
    "evidence": "Features/Report/ReportSheet.swift:1-16 and Features/Thread/ThreadView.swift:11 contextMenu Report",
    "value_preview": "{\"id\": \"report-message\", \"name\": \"Report a message\", \"summary\": \"Long-press a message, enter a reason and submit a report.\", \"user_roles\": [\"signed-in\"], \"criti",
    "part": "messaging"
+  },
+  {
+   "scope": "orchestrator",
+   "fingerprint": "e4285869265f9294",
+   "feature_id": "push-routing",
+   "field": "spec_note",
+   "action": "replace",
+   "evidence": "Push/PushHandler.swift:5-8",
+   "value_preview": "\"No spec of its own: it only opens the thread route, whose behavior the send-message spec covers.\"",
+   "replaced": null
   }
  ],
- "skipped": [],
  "known_issue_checks": [
   {
    "scope": "messaging-core",
@@ -69,18 +79,19 @@
    "feature_id": "send-message",
    "issue": "typing action is sent on every keystroke",
    "verdict": "confirmed",
-   "evidence": "Features/Thread/ThreadView.swift:16 onChange calls typing() with no throttle",
-   "annotated": null
+   "evidence": "Features/Thread/ThreadView.swift:16 onChange calls typing() with no throttle"
   },
   {
    "scope": "messaging-core",
-   "fingerprint": "998557772204cf14",
+   "fingerprint": "d3f560f36852fbaa",
    "feature_id": "send-message",
    "issue": "leaveThread is never sent",
    "verdict": "false_positive",
-   "evidence": "Features/Thread/ThreadViewModel.swift:52 and ThreadView.swift:24 onDisappear",
-   "annotated": "leaveThread is never sent when the screen closes"
+   "evidence": "Features/Thread/ThreadViewModel.swift:54-55 and ThreadView.swift:23 onDisappear",
+   "annotated": "[FALSE_POSITIVE per messaging-core: Features/Thread/ThreadViewModel.swift:54-55 and ThreadView.swift:23 onDisappear] leaveThread is never sent when the screen closes"
   }
  ],
+ "skipped": [],
+ "annotate_unmatched": [],
  "invalid_files": []
 }

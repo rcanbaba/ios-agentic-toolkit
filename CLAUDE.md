@@ -58,17 +58,22 @@ Workflow-specific design, usage, decisions and lessons go in
   parallel area agents, merge/coverage, reconciliation and independent
   verification; read-only on source, writes only `.migration/` in the
   target repo. Agent prompt templates live next to it.
-- `skills/flow-spec/SKILL.md`: flow specs for critical flows and the
-  decision log, consuming the inventory.
+- `skills/flow-spec/SKILL.md`: flow specs for critical flows, spec notes,
+  the decision log and the independent audit (`audit-agent-prompt.md`).
+- `skills/port-prep/SKILL.md`: core closure, untangling and the porting
+  ledger; no scripts yet.
 - `schemas/feature-inventory-part.schema.json` → `scripts/validate_inventory_part.py`
   (also used by `merge_inventory.py`); `schemas/inventory-verification.schema.json`
   → `scripts/apply_verification.py`; `schemas/flow-spec.schema.json` →
   `scripts/validate_flow_spec.py`. Deterministic pipeline:
   `extract_enumerations.py` (per-project config) → `merge_inventory.py` →
   `reconcile_inventory.py` → `apply_verification.py` → `render_inventory.py`;
-  `render_flow_spec.py` derives the flow Markdown.
-- Changing a schema means updating its validator, the skill, the prompt
-  template and `examples/migrations/pocket-threads` together.
+  `render_flow_spec.py` and `render_pending.py` derive the Markdown.
+  `scripts/evidence.py` resolves `file:line` references for all of them.
+- Changing a schema or a script's behavior means updating its validator, the
+  skill, the prompt template and `examples/migrations/pocket-threads`
+  together, regenerating with `evals/feature-inventory/replay.sh --update`,
+  and adding a case to `negative_cases.py` for every defect fixed.
 
 ## Commands
 
@@ -82,14 +87,9 @@ python3 scripts/generate_swiftui.py examples/design-systems/paper-lantern/design
 scripts/render_specimen.sh examples/design-systems/paper-lantern/generated <out-dir>
 swift scripts/sample_colors.swift <image.png>
 
-# Migration: run the pipeline on the example (outputs are checked in; re-running reproduces them)
-python3 scripts/extract_enumerations.py examples/migrations/pocket-threads/migration/enumerations.config.json --out examples/migrations/pocket-threads/migration/inventory/enumerations.json
-python3 scripts/merge_inventory.py --migration-dir examples/migrations/pocket-threads/migration
-python3 scripts/reconcile_inventory.py --migration-dir examples/migrations/pocket-threads/migration --overrides examples/migrations/pocket-threads/migration/reconcile.overrides.json
-python3 scripts/apply_verification.py --migration-dir examples/migrations/pocket-threads/migration --dry-run
-python3 scripts/render_inventory.py --migration-dir examples/migrations/pocket-threads/migration --title "Pocket Threads feature inventory"
-python3 scripts/validate_flow_spec.py examples/migrations/pocket-threads/migration/flow-specs/send-message.json --migration-dir examples/migrations/pocket-threads/migration --require-decisions
-python3 scripts/render_flow_spec.py examples/migrations/pocket-threads/migration/flow-specs/send-message.json
+# Migration: replay the whole pipeline on the example (must reproduce it exactly, twice)
+evals/feature-inventory/replay.sh            # --update regenerates the example after an intended change
+python3 evals/feature-inventory/negative_cases.py
 
 # Validate plugin/marketplace manifests and skill frontmatter
 claude plugin validate .

@@ -31,9 +31,16 @@ Output file (the only file you may write): `{{MIGRATION_DIR}}/verification/{{SCO
 4. Patch format (see the contract):
    - `add` one item or a list of items to a list field
    - `remove` exact items
-   - `replace` **one** list item: `old` is the exact current item, `value`
-     the corrected one. Never replace a whole flow with one step. To rewrite
-     a flow, replace or add step by step.
+   - `replace` **one** list item: `old` is the item's exact current text, or
+     a prefix that only that item starts with; `value` is the corrected item.
+     If `old` matches no item or several, the patch is **not applied** and is
+     listed for manual review, so copy `old` from the inventory. Never replace
+     a whole flow with one step. To rewrite a flow, replace or add step by
+     step.
+   - Flow steps you add or replace carry `path/File.swift:line` evidence in
+     the step text itself, like the existing steps.
+   - `source_files` takes real paths, one per item. Never `"REPLACES [...]:
+     a, b"`: remove the wrong path and add the right ones.
    - scalar fields (`name`, `summary`, `criticality`) take `replace` with a
      string.
    - **Every field is patchable by name.** Never encode a field inside
@@ -45,7 +52,8 @@ Output file (the only file you may write): `{{MIGRATION_DIR}}/verification/{{SCO
      `missing_features`.
 5. `known_issue_checks`: check every `known_issues` entry of your features
    and give a verdict with evidence. `false_positive` needs the line that
-   disproves it.
+   disproves it. `issue` is the entry's exact text or a prefix only that entry
+   starts with; an unmatched check annotates nothing and is listed for review.
 6. `verified_features`: one entry per feature in scope, with `flow_complete`
    answered honestly after your patches.
 7. Describe current behavior only. If you think the behavior is wrong, record

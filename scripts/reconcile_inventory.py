@@ -6,25 +6,35 @@ Deterministic step of the feature-inventory skill, run after merge_inventory.py
 <migration-dir>/inventory/reconciliation.json. Idempotent.
 
 What it does:
+  0. Normalize: a source_files item "path (note)" whose path exists becomes "path", and the
+     note moves to source_file_notes {path: note}. Nothing is dropped.
   1. Attach unreferenced identifiers (api_methods, ws_incoming, ws_outgoing, push_types,
      app_routes) to the features owning their call-site files. A call site is a file
      where one of the field's call_site_patterns matches, excluding the files that
-     declare the enumerations. Attachment only happens when the file has exactly one
-     owning feature; multi-owner files are reported as "ambiguous" for the agent to
-     resolve (or forced with --attach-ambiguous). Identifiers with no call site at all
-     are recorded as dead_identifiers, not attached anywhere.
+     declare the enumerations. Attachment only happens at call-site files with exactly
+     one owning feature, and only when the call-site files belong to at most two
+     features in total; otherwise the identifier is reported as "ambiguous" for the
+     agent to resolve (or forced with --attach-ambiguous). Identifiers with no call
+     site at all are recorded as dead_identifiers, not attached anywhere.
   2. Map dangling depends_on ids: overrides map, then the id with a trailing
      "(area note)" stripped, then a close match (difflib >= 0.85); the rest are
      reported as unresolved_depends_on.
   3. Merge duplicate feature ids across parts (kept in the part whose assigned_paths
-     cover most of its files) and the pairs listed in overrides.merge_features.
+     cover most of its files) and the pairs listed in overrides.merge_features. Lists
+     are unioned; criticality takes the higher value; the dropped summary is appended
+     as "Merged from <id>: ..."; fields the kept feature lacks are copied. A dropped id
+     is replaced by the kept id in depends_on, verification/scopes.json and the
+     related_features of flow-specs/*.json (re-render those specs afterwards);
+     apply_verification.py resolves it in verification files.
   4. Assign or unassign stray files listed in overrides.
 
 Call-site patterns come from the extractor config ("call_site_patterns": {field: [regex
-with {name}]}). Defaults match ".name(" for api methods, "case .name" for incoming
-messages, ".name" preceded by a word boundary for outgoing actions and push types,
-and "(.name)" / "navigate(to: .name" for routes. Set them to the project's real call
-form: matching a bare ".name" attaches sub-routes to hundreds of unrelated features.
+with {name}, and {type} for the declaring enum]}). Defaults match ".name(" for api
+methods, "case .name" and "== .name" for incoming messages, ".name" preceded by a word
+boundary for outgoing actions and push types, and only route-shaped uses for routes:
+"Type.name", "navigate(to: .name", "route: .name", "(.name)". A bare ".name" pattern for
+app_routes is refused: route names collide with SwiftUI tokens (.main, .center,
+.cancel) and get attached to hundreds of unrelated features.
 
 Overrides file (optional JSON, written by the agent after reading the report):
   {"depends_on": {"wrong id": "right-id"},
@@ -48,11 +58,14 @@ from validate_inventory_part import IDENTIFIER_FIELDS, declaration_files, known_
 
 DEFAULT_PATTERNS = {
     "api_methods": [r"\.{name}\("],
-    "ws_incoming": [r"case\s+\.{name}\b", r"\.{name}:"],
+    "ws_incoming": [r"case\s+\.{name}\b", r"==\s*\.{name}\b"],
     "ws_outgoing": [r"\b\.{name}\b"],
     "push_types": [r"\b\.{name}\b"],
-    "app_routes": [r"\(\.{name}\b", r"navigate\(to:\s*\.{name}\b", r"route\(\.{name}\b"],
+    "app_routes": [r"\b{type}\.{name}\b", r"navigate\(to:\s*\.{name}\b", r"route:\s*\.{name}\b", r"\(\.{name}\)"],
 }
+BARE_ROUTE = re.compile(r"^(\\b)?\\\.\{name\}(\\b)?$")
+MAX_OWNERS = 2
+CRITICALITY = ["low", "medium", "high", "core"]
 
 LIST_FIELDS = ["user_roles", "entry_points", "screens", "user_actions", "flow", "states_and_edge_cases", "api_methods",
                "ws_incoming", "ws_outgoing", "sdk_usage", "app_routes", "push_types", "settings_flags", "analytics_events",
@@ -60,13 +73,58 @@ LIST_FIELDS = ["user_roles", "entry_points", "screens", "user_actions", "flow", 
 
 
 def union_into(keep, drop):
+    """Merge drop into keep without losing anything."""
     for field in LIST_FIELDS:
         cur = keep.setdefault(field, [])
         for x in drop.get(field, []):
             if x not in cur:
                 cur.append(x)
+    if CRITICALITY.index(drop["criticality"]) > CRITICALITY.index(keep["criticality"]):
+        keep["criticality"] = drop["criticality"]
+    if drop["summary"] != keep["summary"]:
+        keep["summary"] = f"{keep['summary']} Merged from {drop['id']}: {drop['summary']}"
+    notes = keep.setdefault("source_file_notes", {})
+    for k, v in drop.get("source_file_notes", {}).items():
+        notes.setdefault(k, v)
+    if not notes:
+        del keep["source_file_notes"]
+    for k, v in drop.items():
+        if k not in keep and k != "id":
+            keep[k] = v
     keep.setdefault("merged_from", []).append(drop["id"])
 
+
+def normalize_source_files(f, known_files, log):
+    """Move "path (note)" annotations into source_file_notes instead of dropping them."""
+    fixed = []
+    for s in f["source_files"]:
+        m = re.match(r"^(\S+?)\s*\((.+)\)\s*$", s)
+        if m and s not in known_files and m.group(1) in known_files:
+            f.setdefault("source_file_notes", {}).setdefault(m.group(1), m.group(2))
+            log.append({"action": "normalize_source_file", "feature": f["id"], "from": s, "to": m.group(1)})
+            s = m.group(1)
+        if s not in fixed:
+            fixed.append(s)
+    f["source_files"] = fixed
+
+
+def rewrite_references(mig, renames, log):
+    """Replace merged (dropped) ids in scopes.json and the specs' related_features."""
+    if not renames:
+        return
+    targets = [mig / "verification" / "scopes.json"] + sorted((mig / "flow-specs").glob("*.json"))
+    for path in (t for t in targets if t.is_file()):
+        doc = load_json(path)
+        lists = [v["features"] for v in doc.values()] if path.name == "scopes.json" else [doc.get("related_features", [])]
+        changed = False
+        for ids in lists:
+            new = list(dict.fromkeys(renames.get(i, i) for i in ids))
+            if new != ids:
+                ids[:] = new
+                changed = True
+        if changed:
+            path.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
+            log.append({"action": "rewrite_references", "file": str(path.relative_to(mig)), "renames": renames})
 
 def part_for_files(parts, files):
     """The part whose assigned_paths cover the most of these files (None if no coverage)."""
@@ -89,6 +147,12 @@ def reconcile(mig, config, overrides, attach_ambiguous):
     part_paths = sorted((inv / "parts").glob("*.json"))
     parts = [load_json(p) for p in part_paths]
     log, report = [], {"dead_identifiers": {}, "ambiguous": [], "unresolved_depends_on": []}
+
+    # --- 0. normalize annotated source file paths
+    known_files = {c["path"] for c in enums["source_files"]["cases"]}
+    for part in parts:
+        for f in part["features"]:
+            normalize_source_files(f, known_files, log)
 
     # --- 3a. duplicate ids across parts
     seen = {}
@@ -113,6 +177,11 @@ def reconcile(mig, config, overrides, attach_ambiguous):
 
     # --- 1. attach unreferenced identifiers by call site
     patterns = {**DEFAULT_PATTERNS, **config.get("call_site_patterns", {})}
+    types = defaultdict(set)
+    for entry in enums["keys"].values():
+        for c in entry["cases"]:
+            if entry.get("type"):
+                types[c["name"]].add(entry["type"])
     exclude = declaration_files(enums) | set(config.get("exclude_from_call_sites", []))
     files = [c["path"] for c in enums["source_files"]["cases"] if c["path"] not in exclude]
     cache = {}
@@ -129,12 +198,20 @@ def reconcile(mig, config, overrides, attach_ambiguous):
     for field in IDENTIFIER_FIELDS:
         dead = []
         for name in cov["coverage"].get(field, {}).get("unreferenced", []):
-            rxs = [re.compile(p.replace("{name}", re.escape(name))) for p in patterns[field]]
+            rxs = [re.compile(p.replace("{name}", re.escape(name)).replace("{type}", "(?:" + "|".join(map(re.escape, sorted(types[name]))) + ")"))
+                   for p in patterns[field] if "{type}" not in p or types[name]]
             sites = [p for p in files if any(rx.search(text(p)) for rx in rxs)]
             if not sites:
                 dead.append(name)
                 continue
             attached, ambiguous = [], []
+            candidates = {fid for site in sites for fid in owners.get(site, [])}
+            if len(candidates) > MAX_OWNERS and not attach_ambiguous:
+                report["ambiguous"].append({"field": field, "identifier": name, "candidates": sorted(candidates),
+                                            "sites": [{"file": s, "candidates": owners.get(s, [])} for s in sites],
+                                            "why": f"call sites belong to {len(candidates)} features"})
+                log.append({"action": "attach", "field": field, "identifier": name, "call_sites": sites, "features": []})
+                continue
             for site in sites:
                 ids = owners.get(site, [])
                 if len(ids) == 1 or (ids and attach_ambiguous):
@@ -173,6 +250,7 @@ def reconcile(mig, config, overrides, attach_ambiguous):
         f["depends_on"] = list(dict.fromkeys(x for x in new if x != f["id"]))
 
     # --- 3b. merges requested by the agent (duplicates found during verification)
+    renames = {}
     for keep_id, drop_id in overrides.get("merge_features", []):
         if keep_id not in feats or drop_id not in feats:
             log.append({"action": "merge_skipped", "keep": keep_id, "drop": drop_id, "why": "already merged or unknown"})
@@ -184,6 +262,9 @@ def reconcile(mig, config, overrides, attach_ambiguous):
         for f in feats.values():
             f["depends_on"] = list(dict.fromkeys(keep_id if x == drop_id else x for x in f.get("depends_on", []) if x != f["id"]))
         log.append({"action": "merge", "keep": keep_id, "drop": drop_id})
+        renames = {k: (keep_id if v == drop_id else v) for k, v in renames.items()}
+        renames[drop_id] = keep_id
+    rewrite_references(mig, renames, log)
 
     # --- 4. stray files
     for file, fid in overrides.get("assign_files", {}).items():
@@ -231,6 +312,11 @@ def main(argv):
     config_path = config_path or mig / "enumerations.config.json"
     try:
         config = load_json(config_path) if config_path.is_file() else {}
+        bare = [p for p in config.get("call_site_patterns", {}).get("app_routes", []) if BARE_ROUTE.match(p)]
+        if bare:
+            print(f"error: bare route patterns {bare} match SwiftUI tokens like .main or .center; "
+                  "use route-shaped forms (Type.{name}, navigate(to: .{name}, route: .{name}, (.{name}))", file=sys.stderr)
+            return 2
         overrides = load_json(overrides_path) if overrides_path else {}
         report, log = reconcile(mig, config, overrides, attach_ambiguous)
     except (OSError, json.JSONDecodeError, KeyError) as exc:

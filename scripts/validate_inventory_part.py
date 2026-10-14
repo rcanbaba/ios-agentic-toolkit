@@ -7,8 +7,9 @@ merge_inventory.py. Two layers:
      (identifier fields are one identifier per item; multi-value strings fail the pattern).
   2. Semantic: identifiers exist in enumerations.json (api methods, realtime messages,
      push types, routes and sub-routes), source_files exist, every source file under
-     assigned_paths is claimed or listed unassigned, core/high features have a flow,
-     unique ids within the part, screens' files are claimed.
+     assigned_paths is claimed or listed unassigned, core/high features have a flow
+     whose every step carries file:line evidence inside an existing file, unique ids
+     within the part, screens' files are claimed, source_file_notes name claimed files.
 
 Usage: validate_inventory_part.py <part.json> [--enumerations <enumerations.json>] [--schema <schema.json>]
   --enumerations defaults to ../enumerations.json next to the parts/ directory.
@@ -20,6 +21,7 @@ import re
 import sys
 from pathlib import Path
 
+import evidence
 from schema_lite import check_schema
 
 DEFAULT_SCHEMA = Path(__file__).resolve().parent.parent / "schemas" / "feature-inventory-part.schema.json"
@@ -67,6 +69,7 @@ def unknown_in(field, items, known):
 def check_part(part, enums, errors, warnings):
     known = known_identifiers(enums)
     all_files = source_files(enums)
+    counts = evidence.line_counts(enums)
     ids = [f["id"] for f in part["features"]]
     dupes = sorted({i for i in ids if ids.count(i) > 1})
     if dupes:
@@ -84,8 +87,14 @@ def check_part(part, enums, errors, warnings):
             unknown = unknown_in(field, items, known)
             if unknown:
                 errors.append(f"{fid}.{field}: unknown identifiers {sorted(set(unknown))} (use exact names from enumerations.json)")
-        if f["criticality"] in ("core", "high") and not f.get("flow"):
-            errors.append(f"{fid}: criticality {f['criticality']} requires a non-empty flow")
+        if f["criticality"] in ("core", "high"):
+            if not f.get("flow"):
+                errors.append(f"{fid}: criticality {f['criticality']} requires a non-empty flow")
+            for i, step in enumerate(f.get("flow", [])):
+                evidence.check(step, counts, f"{fid}.flow[{i}]", errors)
+        for note_file in f.get("source_file_notes", {}):
+            if note_file not in f["source_files"]:
+                errors.append(f"{fid}.source_file_notes: {note_file} is not in source_files")
         for s in f["source_files"]:
             if s not in all_files:
                 errors.append(f"{fid}.source_files: {s} does not exist in the source tree")

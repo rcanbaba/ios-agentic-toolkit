@@ -3,6 +3,7 @@
 `send-message` · actors: user, server, realtime socket
 
 Describes current behavior as implemented (as-is). Target behavior is listed under Open decisions.
+Generated from the JSON spec; do not edit.
 
 ## Related features
 
@@ -63,41 +64,43 @@ stateDiagram-v2
 
 ## Transitions
 
-| From | Event | Guard | Actions | To | Evidence |
-|---|---|---|---|---|---|
-| idle | ui_open_thread |  | ui:navigate(.thread); api:fetchMessages | loading | `Features/Threads/ThreadListViewModel.swift:15` |
-| loading | api_messages_loaded |  | ui:show messages; ws_out:joinThread; ui:subscribe onMessage; api:markThreadRead | open | `Features/Thread/ThreadViewModel.swift:14` |
-| loading | api_messages_failed |  | ui:show empty list (error swallowed); ws_out:joinThread; ui:subscribe onMessage; api:markThreadRead | open | `Features/Thread/ThreadViewModel.swift:15` |
-| open | ws_message_received | payload decodes to a Message | ui:append message | open | `Features/Thread/ThreadViewModel.swift:19` |
-| open | ws_typing_started |  | ui:show typing label (never hidden again) | open | `Features/Thread/ThreadViewModel.swift:21` |
-| open | ui_keystroke |  | ws_out:typing | open | `Features/Thread/ThreadView.swift:16` |
-| open | ui_send_tapped | draft not empty and not sending | ui:disable send; api:sendMessage | sending | `Features/Thread/ThreadViewModel.swift:30` |
-| send_failed | ui_send_tapped | draft not empty and not sending | ui:disable send; api:sendMessage | sending | `Features/Thread/ThreadViewModel.swift:30` |
-| sending | api_send_success |  | ui:append message; ui:clear error; ui:enable send | open | `Features/Thread/ThreadViewModel.swift:34` |
-| sending | api_send_failed |  | api:sendMessage (silent retry) | retrying | `Features/Thread/ThreadViewModel.swift:38` |
-| retrying | api_retry_success |  | ui:append message; ui:enable send | open | `Features/Thread/ThreadViewModel.swift:39` |
-| retrying | api_retry_failed |  | ui:show 'Could not send'; ui:enable send | send_failed | `Features/Thread/ThreadViewModel.swift:41` |
-| * | ui_screen_closed |  | ws_out:leaveThread | idle | `Features/Thread/ThreadViewModel.swift:52` |
+| # | From | Event | Guard | Actions | To | Evidence |
+|---|---|---|---|---|---|---|
+| T1 | idle | ui_open_thread |  | ui:navigate(.thread); api:fetchMessages | loading | `Features/Threads/ThreadListViewModel.swift:15` |
+| T2 | loading | api_messages_loaded |  | ui:show messages; ws_out:joinThread; ui:subscribe onMessage; api:markThreadRead | open | `Features/Thread/ThreadViewModel.swift:14` |
+| T3 | loading | api_messages_failed |  | ui:show empty list (error swallowed); ws_out:joinThread; ui:subscribe onMessage; api:markThreadRead | open | `Features/Thread/ThreadViewModel.swift:15` |
+| T4 | open | ws_message_received | payload decodes to a Message | ui:append message | open | `Features/Thread/ThreadViewModel.swift:19` |
+| T5 | open | ws_typing_started |  | ui:show typing label (never hidden again) | open | `Features/Thread/ThreadViewModel.swift:21` |
+| T6 | open | ui_keystroke |  | ws_out:typing | open | `Features/Thread/ThreadView.swift:16` |
+| T7 | open | ui_send_tapped | draft not empty and not sending | ui:disable send; api:sendMessage | sending | `Features/Thread/ThreadViewModel.swift:30` |
+| T8 | send_failed | ui_send_tapped | draft not empty and not sending | ui:disable send; api:sendMessage | sending | `Features/Thread/ThreadViewModel.swift:30` |
+| T9 | sending | api_send_success |  | ui:append message; ui:clear error; ui:enable send | open | `Features/Thread/ThreadViewModel.swift:34` |
+| T10 | sending | api_send_failed |  | api:sendMessage (silent retry) | retrying | `Features/Thread/ThreadViewModel.swift:38` |
+| T11 | retrying | api_retry_success |  | ui:append message; ui:enable send | open | `Features/Thread/ThreadViewModel.swift:39` |
+| T12 | retrying | api_retry_failed |  | ui:show 'Could not send'; ui:enable send | send_failed | `Features/Thread/ThreadViewModel.swift:41` |
+| T13 | * | ui_screen_closed |  | ws_out:leaveThread | idle | `Features/Thread/ThreadViewModel.swift:54-55` |
 
 ## Invariants
 
-- **INV-1** Every joinThread is followed by exactly one leaveThread when the screen disappears. (`Features/Thread/ThreadView.swift:24`)
-- **INV-2** At most one sendMessage sequence is in flight; the send button is disabled meanwhile. (`Features/Thread/ThreadView.swift:18`)
+| Id | Statement | Evidence | Covered by |
+|---|---|---|---|
+| INV-1 | Every joinThread is followed by exactly one leaveThread when the screen disappears. | `Features/Thread/ThreadView.swift:23` | AT-6 |
+| INV-2 | At most one sendMessage sequence is in flight; the send button is disabled meanwhile. | `Features/Thread/ThreadView.swift:18` | AT-7 |
 
 ## Interruptions
 
-| Id | Situation | Current behavior | Evidence |
-|---|---|---|---|
-| INT-1 | app goes to background and returns | Nothing happens: no leave, no re-join, no refetch; the socket state is whatever the system left. | `Realtime/SocketClient.swift:7` |
-| INT-2 | socket reconnects while the conversation is open | No joinThread is re-sent; incoming messages for this thread are lost until the screen is reopened. | `Realtime/SocketClient.swift:9` |
+| Id | Situation | Current behavior | Evidence | Covered by |
+|---|---|---|---|---|
+| INT-1 | app goes to background and returns | Nothing happens: no leave, no re-join, no refetch; the socket state is whatever the system left. | `Realtime/SocketClient.swift:7` | AT-4 |
+| INT-2 | socket reconnects while the conversation is open | No joinThread is re-sent; incoming messages for this thread are lost until the screen is reopened. | `Realtime/SocketClient.swift:9` | AT-5 |
 
 ## Failure handling
 
-| Id | Situation | Current behavior | Evidence |
-|---|---|---|---|
-| FH-1 | fetchMessages fails | Empty list, no error shown; the thread is still joined and marked read. | `Features/Thread/ThreadViewModel.swift:15` |
-| FH-2 | sendMessage fails twice | 'Could not send' label; draft is cleared by the view regardless. | `Features/Thread/ThreadViewModel.swift:41` |
-| FH-3 | markThreadRead fails | Ignored (try?). Unread badge stays until the next successful open. | `Features/Thread/ThreadViewModel.swift:27` |
+| Id | Situation | Current behavior | Evidence | Covered by |
+|---|---|---|---|---|
+| FH-1 | fetchMessages fails | Empty list, no error shown; the thread is still joined and marked read. | `Features/Thread/ThreadViewModel.swift:15` | AT-3 |
+| FH-2 | sendMessage fails twice | 'Could not send' label; draft is cleared by the view regardless. | `Features/Thread/ThreadViewModel.swift:41` | AT-2 |
+| FH-3 | markThreadRead fails | Ignored (try?). Unread badge stays until the next successful open. | `Features/Thread/ThreadViewModel.swift:26` | AT-3 |
 
 ## Cross-flow interactions
 
@@ -135,6 +138,7 @@ stateDiagram-v2
 | AT-5 | p1 | an open conversation | the socket reconnects | no joinThread is re-sent (as-is; changes under rule A1) | INT-2 |
 | AT-6 | p0 | an open conversation | the screen disappears | exactly one leaveThread is sent | INV-1 |
 | AT-7 | p1 | a send in flight | the user taps send again | no second sendMessage is started | INV-2 |
+| AT-8 | p2 | an open conversation | the peer starts typing (typingStarted) | 'typing...' is shown below the messages | behavior |
 
 ## Excluded identifiers
 

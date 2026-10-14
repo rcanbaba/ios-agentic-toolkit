@@ -40,6 +40,13 @@ final class APIClient {
 
 extension APIClient {
     internal func reportMessage(messageId: String, reason: String) async throws {
-        _ = try await perform(RequestConfiguration(path: .report, body: ["id": messageId, "reason": reason]))
+        _ = try await perform(RequestConfiguration(
+            path: .report,
+            body: ["id": messageId, "reason": reason]))
+    }
+
+    // Generic download helper, not an API method.
+    func fetchData(from url: URL) async throws -> Data {
+        try await URLSession.shared.data(from: url).0
     }
 }

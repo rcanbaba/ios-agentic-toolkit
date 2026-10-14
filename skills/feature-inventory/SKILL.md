@@ -47,21 +47,29 @@ most core features. Never skip step 5.
 Survey the project (Glob/Grep, a few targeted reads) to locate the
 enumerable sources of truth. Typical ones:
 
-| Source of truth | Where to look |
-|---|---|
-| API client type and its methods, including internal ones | the networking layer; one type that owns every request |
-| API path enum | next to the client |
-| Incoming realtime message types, outgoing action types | socket / realtime layer |
-| Route enum and its sub-route enums | navigation / router |
-| Push notification types, deeplink actions | push / deeplink handlers |
-| Tabs | tab bar |
-| Feature flags, analytics event names (optional, by regex) | settings / analytics |
+| Source of truth | Where to look | kind |
+|---|---|---|
+| API client methods, including internal ones and extensions; `exclude` the non-API helpers (generic fetch/download, multipart body builders, cancel-all) | the networking layer | `methods` |
+| API path enum; paths with no client method | next to the client | `enum`; `difference` |
+| Incoming realtime message types; those parsed but consumed nowhere | socket / realtime layer | `enum`; `unconsumed` |
+| Outgoing realtime action types, realtime request payloads | socket / realtime layer | `enum` / `regex` |
+| Route enum and its sub-route enums; tab aliases | navigation / router, tab bar | `enum` |
+| Push notification types, deeplink actions and keys | push / deeplink handlers | `enum` / `regex` |
+| Media/stream SDK wrapper methods and SDK events | the wrapper around the SDK | `methods` / `enum` |
+| SDK delegate callbacks implemented, and not implemented | conforming types; the SDK's headers in Pods | `conformance` with `requirements` |
+| Engine / encoder configuration types | SDK setup code | `regex` |
+| Third-party SDKs | Podfile.lock, the project's Swift packages, vendored frameworks | `dependencies` |
+| Notification.Name constants with poster/observer counts | anywhere | `regex` with `counts` |
+| UserDefaults keys, feature flags, analytics event types | settings / analytics | `regex` / `enum` |
+| Info.plist, entitlements, privacy manifest keys | the app target | `plist` |
+| Localization keys | `.strings` / `.xcstrings` | `strings` |
 
 Write `.migration/enumerations.config.json` (format in the docstring of
 `extract_enumerations.py`), one `extract` entry per source of truth, with
 `field` set to the inventory field it backs (`api_methods`, `ws_incoming`,
-`ws_outgoing`, `push_types`, `app_routes`; `null` for informational keys).
-Set `call_site_patterns` for the project's real call forms now (see step 4).
+`ws_outgoing`, `push_types`, `app_routes`; `null` for informational keys,
+which get text coverage instead). Set `call_site_patterns` for the project's
+real call forms now (see step 4).
 Then:
 
 ```
@@ -70,7 +78,9 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/extract_enumerations.py .migration/enumera
 
 Check the counts against the code before continuing: open the API client
 and compare the method count with your own quick count; make sure methods
-without an access modifier (internal) and methods in extensions are present.
+without an access modifier (internal) and methods in extensions are present,
+that `excluded` holds only helpers, and that methods whose request is built
+over several lines still have a `path`.
 Fix the config until nothing is reported as "not found" and the counts are
 credible. Everything downstream measures against this file.
 
@@ -86,6 +96,10 @@ Show the user the baseline counts, the area split and how many agents this
 run will start (areas now, then one verifier per flow scope plus a hunter).
 **Wait for confirmation before spawning any agent**: the run is the most
 expensive in the toolkit, and the user may want to correct the split.
+
+Core/high features need a flow whose every step carries `file:line`
+evidence; the validator rejects steps without it or with lines outside the
+file.
 
 For each area, spawn one agent (fresh context, parallel) with the prompt in
 `${CLAUDE_SKILL_DIR}/area-agent-prompt.md`, placeholders filled. Each agent
@@ -114,15 +128,22 @@ Read `.migration/inventory/coverage.json`, not just the summary line:
   cross-area ids). Step 4 maps them.
 - `duplicate_ids`, `core_high_without_flow`, `problems` (per-part validator
   errors)
+- `text_coverage`: for informational keys (API paths, SDKs, notification
+  names, plist keys, unconsumed messages, ...), which names no feature
+  mentions. These are leads for features nobody described, not errors.
 
 ## 4. Reconcile
 
 Reconciliation attaches unreferenced identifiers to the features whose files
 call them. It needs the project's real call forms in
 `call_site_patterns` (config): e.g. `\.{name}\(` for API methods,
-`navigate\(to:\s*\.{name}\b` and `\(\.{name}\)` for routes and sub-routes.
-Do not match a bare `.{name}`: sub-route names collide with ordinary
-identifiers and get attached to hundreds of unrelated features.
+`\b{type}\.{name}\b`, `navigate\(to:\s*\.{name}\b` and `\(\.{name}\)` for
+routes and sub-routes (`{type}` is the declaring enum). Route patterns must be
+route-shaped: a bare `.{name}` matches SwiftUI tokens like `.main`, `.center`
+or `.cancel`, so the script refuses it. An identifier whose call sites belong
+to more than two features is never attached automatically; it is reported as
+ambiguous. Reconcile also moves `"path (note)"` source files into
+`source_file_notes`.
 
 ```
 python3 ${CLAUDE_PLUGIN_ROOT}/scripts/reconcile_inventory.py --migration-dir .migration [--overrides .migration/reconcile.overrides.json]
@@ -168,15 +189,20 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/apply_verification.py --migration-dir .mig
 
 Read its output and `.migration/verification/applied.json`:
 
-- `appended_instead_of_replace` / `matched`: a replace whose `old` did not
-  match exactly. Open the feature and the code and settle it by hand; never
-  let a flow lose steps.
-- `skipped`: unknown feature ids or existing ids for new features.
+- `skipped` with `replace_no_unique_match`: a replace whose `old` matched no
+  item or several. Nothing was changed. Open the feature and the code, then
+  write the corrected patch (exact `old`) in `orchestrator.json`.
+- `skipped` otherwise: unknown feature ids or existing ids for new features.
+- `annotate_unmatched`: a known-issue verdict that matched no unique issue;
+  nothing was annotated. Settle it the same way.
 - Two verifiers disagreeing on the same feature: decide by reading the code
   directly, record the outcome as a patch of your own in
   `.migration/verification/orchestrator.json`, and apply again.
 - Duplicate features found by verifiers: list `["keep-id", "drop-id"]` in
-  `reconcile.overrides.json` → `merge_features`, then re-run reconcile.
+  `reconcile.overrides.json` → `merge_features`, then re-run reconcile. The
+  merge keeps every list item, the higher criticality and both summaries, and
+  replaces the dropped id in `scopes.json` and flow specs; patches written
+  against the dropped id still apply to the kept feature.
 
 Finish with reconcile → merge → render:
 
@@ -211,5 +237,7 @@ Include these verbatim in the prompts (the templates already do):
   identifier field.
 - Describe current behavior only. Target behavior, opinions and "should" go
   to `open_questions` (authors) or are left out (verifiers).
-- Every claim a verifier makes carries `path/File.swift:line` evidence.
+- Every claim a verifier makes carries `path/File.swift:line` evidence, and
+  so does every step of a core/high flow.
+- `source_files` are bare paths; remarks go to `source_file_notes`.
 - Guesses are not facts: put them in `open_questions`.

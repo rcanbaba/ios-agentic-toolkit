@@ -14,9 +14,11 @@
    ]
   },
   "ws_incoming": {
-   "known": 3,
+   "known": 4,
    "referenced": 3,
-   "unreferenced": []
+   "unreferenced": [
+    "readReceipt"
+   ]
   },
   "ws_outgoing": {
    "known": 3,
@@ -33,6 +35,44 @@
   "app_routes": {
    "known": 5,
    "referenced": 5,
+   "unreferenced": []
+  }
+ },
+ "text_coverage": {
+  "api_paths": {
+   "known": 7,
+   "referenced_in_inventory": 4,
+   "referenced_in_specs": 2,
+   "in_specs_only": [],
+   "unreferenced": [
+    "deleteAccount",
+    "markRead",
+    "notificationPrefs"
+   ]
+  },
+  "api_paths_without_client_method": {
+   "known": 0,
+   "referenced_in_inventory": 0,
+   "referenced_in_specs": 0,
+   "in_specs_only": [],
+   "unreferenced": []
+  },
+  "ws_parsed_but_unconsumed": {
+   "known": 1,
+   "referenced_in_inventory": 0,
+   "referenced_in_specs": 0,
+   "in_specs_only": [],
+   "unreferenced": [
+    "readReceipt"
+   ]
+  },
+  "localization_keys": {
+   "known": 9,
+   "referenced_in_inventory": 8,
+   "referenced_in_specs": 3,
+   "in_specs_only": [
+    "typing..."
+   ],
    "unreferenced": []
   }
  },
@@ -53,5 +93,6 @@
  "dangling_depends_on": [],
  "duplicate_ids": {},
  "core_high_without_flow": [],
+ "core_high_without_spec": [],
  "problems": []
 }

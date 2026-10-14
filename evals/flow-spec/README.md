@@ -10,9 +10,12 @@ apart from target decisions.
 |---|---|
 | Contract | `validate_flow_spec.py` reports no errors |
 | Identifier completeness | every api / realtime identifier of the related features is in the spec or excluded with a reason |
-| Reachability | every state reachable from the initial state; no event unused (warning) |
-| Test coverage | `covers` includes `happy_path`, every `INV-`, `INT-` and `FH-` id |
-| Decisions | after step 4, `--require-decisions` passes and every decision is in `DECISIONS.md` |
+| Reachability | every state reachable from the entry states; no event unused (warning) |
+| Evidence | every `file:line` resolves to an existing file and lines inside it |
+| Test coverage | `covers` includes `happy_path`, every `INV-`, `INT-` and `FH-` id (`behavior` for other tests) |
+| Spec coverage | `merge_inventory.py --coverage-only` passes: every core/high feature is in a spec or has a `spec_note` |
+| Decisions | after step 4, `--require-decisions` passes, every decision is in `DECISIONS.md`, "align with the old app" decisions cite code that was read, and `render_pending.py` lists no decided question |
+| Audit | `AUDIT.md` exists; no `data-loss` or `wrong` finding is still open |
 | Read-only | `git status` shows no change outside `.migration/` |
 
 ## Judged checks (human or model grader, 0–2 each)
@@ -26,6 +29,8 @@ apart from target decisions.
 | Exclusions | Are excluded identifiers genuinely outside the flow? |
 | Cross-flow | Are interactions with other sessions and flows described? |
 | Decision grouping | Were recurring questions grouped into cross-cutting rules decided once, with a default rule for the rest? |
+| Spec notes | Does each `spec_note` hold up, or is a critical flow being skipped? |
+| Audit depth | Did the audit sample claims against code and read the scripts' logs, and does it say what it sampled? |
 | Tests | Would the acceptance tests fail on an implementation that skips cleanup or mishandles a failure? |
 
 ## Planned fixtures
@@ -40,5 +45,7 @@ apart from target decisions.
 
 ## Running
 
-Not automated yet. Run the validator and renderer on the example; score
-agent-written specs on a real repository with the rubric above.
+The scripted checks run as part of the feature-inventory replay and negative
+cases (see [`evals/feature-inventory`](../feature-inventory/README.md#running)),
+which include the flow-spec validator, renderer and `render_pending.py`.
+Score agent-written specs on a real repository with the rubric above.

@@ -2,7 +2,10 @@
 """Render a flow spec JSON into a readable Markdown file with a mermaid state diagram.
 
 Deterministic step of the flow-spec skill: the JSON is the source of truth, the
-Markdown is derived, so the two cannot drift. Writes <flow_id>.md next to each spec.
+Markdown is derived, so the two cannot drift. Writes <flow_id>.md next to each spec,
+always from scratch: never edit the .md by hand. Transitions are numbered (T1, T2, ...);
+invariants, interruptions and failures show the acceptance tests that cover them; open
+decisions show their decision (or "open").
 
 Usage: render_flow_spec.py <spec.json>...
 Exit code 0 = rendered, 2 = usage/IO error.
@@ -24,14 +27,28 @@ def table(headers, rows):
 
 
 def render(spec):
-    L = [f"# Flow spec: {spec['title']}", "",
-         f"`{spec['flow_id']}` · actors: {', '.join(spec['actors'])}", "",
-         "Describes current behavior as implemented (as-is). Target behavior is listed under Open decisions.", "",
+    covered_by = {}
+    for t in spec["acceptance_tests"]:
+        for ref in t["covers"]:
+            covered_by.setdefault(ref, []).append(t["id"])
+
+    def tests(item_id):
+        return ", ".join(covered_by.get(item_id, [])) or "**none**"
+
+    header = f"`{spec['flow_id']}` · actors: {', '.join(spec['actors'])}"
+    if spec.get("base_flow"):
+        header += f" · extends `{spec['base_flow']}`"
+    L = [f"# Flow spec: {spec['title']}", "", header, "",
+         "Describes current behavior as implemented (as-is). Target behavior is listed under Open decisions.",
+         "Generated from the JSON spec; do not edit.", "",
          "## Related features", "", ", ".join(f"`{f}`" for f in spec["related_features"]), ""]
+    if spec.get("scope_notes"):
+        L += ["## Scope", ""] + [f"- {n}" for n in spec["scope_notes"]] + [""]
     if spec["preconditions"]:
         L += ["## Preconditions", ""] + [f"- {p}" for p in spec["preconditions"]] + [""]
 
-    L += ["## State diagram", "", "```mermaid", "stateDiagram-v2", f"    [*] --> {spec['states'][0]['id']}"]
+    L += ["## State diagram", "", "```mermaid", "stateDiagram-v2"]
+    L += [f"    [*] --> {e}" for e in spec.get("entry_states") or [spec["states"][0]["id"]]]
     for t in spec["transitions"]:
         src = "[*]" if t["from"] == "*" else t["from"]
         label = t["event"] + (f" [{t['guard']}]" if t.get("guard") else "")
@@ -42,14 +59,16 @@ def render(spec):
                                    [(f"`{s['id']}`", s["actor"], s["description"], s["ui"], s["resources"]) for s in spec["states"]])
     L += ["## Events", ""] + table(["Event", "Source", "Identifier", "Payload"],
                                    [(f"`{e['id']}`", e["source"], f"`{e['identifier']}`", ", ".join(e["payload"])) for e in spec["events"]])
-    L += ["## Transitions", ""] + table(["From", "Event", "Guard", "Actions", "To", "Evidence"],
-                                        [(t["from"], t["event"], t.get("guard") or "", "; ".join(t["actions"]), t["to"], f"`{t['evidence']}`") for t in spec["transitions"]])
+    L += ["## Transitions", ""] + table(["#", "From", "Event", "Guard", "Actions", "To", "Evidence"],
+                                        [(f"T{n}", t["from"], t["event"], t.get("guard") or "", "; ".join(t["actions"]), t["to"], f"`{t['evidence']}`")
+                                         for n, t in enumerate(spec["transitions"], 1)])
     if spec["invariants"]:
-        L += ["## Invariants", ""] + [f"- **{i['id']}** {i['statement']}" + (f" (`{i['evidence']}`)" if i.get("evidence") else "") for i in spec["invariants"]] + [""]
+        L += ["## Invariants", ""] + table(["Id", "Statement", "Evidence", "Covered by"],
+                                          [(i["id"], i["statement"], f"`{i['evidence']}`" if i.get("evidence") else "", tests(i["id"])) for i in spec["invariants"]])
     for key, heading in (("interruptions", "Interruptions"), ("failure_handling", "Failure handling")):
         if spec[key]:
-            L += [f"## {heading}", ""] + table(["Id", "Situation", "Current behavior", "Evidence"],
-                                              [(x["id"], x["situation"], x["current_behavior"], f"`{x['evidence']}`") for x in spec[key]])
+            L += [f"## {heading}", ""] + table(["Id", "Situation", "Current behavior", "Evidence", "Covered by"],
+                                              [(x["id"], x["situation"], x["current_behavior"], f"`{x['evidence']}`", tests(x["id"])) for x in spec[key]])
     if spec["cross_flow_interactions"]:
         L += ["## Cross-flow interactions", ""] + [f"- {x}" for x in spec["cross_flow_interactions"]] + [""]
     if spec["as_is_bugs"]:

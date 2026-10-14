@@ -43,6 +43,9 @@
      "access": "internal",
      "path": "report"
     }
+   ],
+   "excluded": [
+    "fetchData"
    ]
   },
   "api_paths": {
@@ -79,13 +82,21 @@
      "name": "report",
      "raw": "/messages/{id}/report"
     }
-   ]
+   ],
+   "type": "APIPath"
+  },
+  "api_paths_without_client_method": {
+   "kind": "difference",
+   "field": null,
+   "source": "Networking/APIPath.swift",
+   "count": 0,
+   "cases": []
   },
   "ws_incoming_message_types": {
    "kind": "enum",
    "field": "ws_incoming",
    "source": "Realtime/SocketMessages.swift",
-   "count": 3,
+   "count": 4,
    "cases": [
     {
      "name": "messageReceived",
@@ -98,8 +109,30 @@
     {
      "name": "threadUpdated",
      "raw": "thread_updated"
+    },
+    {
+     "name": "readReceipt",
+     "raw": "read_receipt"
     }
-   ]
+   ],
+   "type": "IncomingMessageType"
+  },
+  "ws_parsed_but_unconsumed": {
+   "kind": "unconsumed",
+   "field": null,
+   "source": "Realtime/SocketMessages.swift",
+   "count": 1,
+   "cases": [
+    {
+     "name": "readReceipt"
+    }
+   ],
+   "consumers": {
+    "messageReceived": 1,
+    "typingStarted": 1,
+    "threadUpdated": 1,
+    "readReceipt": 0
+   }
   },
   "ws_outgoing_action_types": {
    "kind": "enum",
@@ -119,7 +152,8 @@
      "name": "typing",
      "raw": "typing"
     }
-   ]
+   ],
+   "type": "OutgoingActionType"
   },
   "app_routes": {
    "kind": "enum",
@@ -139,7 +173,8 @@
      "name": "settings",
      "raw": null
     }
-   ]
+   ],
+   "type": "AppRoute"
   },
   "settings_sub_routes": {
    "kind": "enum",
@@ -155,7 +190,8 @@
      "name": "about",
      "raw": null
     }
-   ]
+   ],
+   "type": "SettingsRoute"
   },
   "push_types": {
    "kind": "enum",
@@ -174,6 +210,51 @@
     {
      "name": "digest",
      "raw": "digest"
+    }
+   ],
+   "type": "PushType"
+  },
+  "localization_keys": {
+   "kind": "regex",
+   "field": null,
+   "source": "Features",
+   "count": 9,
+   "cases": [
+    {
+     "name": "About",
+     "first_seen": "Features/Settings/SettingsView.swift"
+    },
+    {
+     "name": "Message",
+     "first_seen": "Features/Thread/ThreadView.swift"
+    },
+    {
+     "name": "No conversations yet",
+     "first_seen": "Features/Threads/ThreadListView.swift"
+    },
+    {
+     "name": "Notifications",
+     "first_seen": "Features/Settings/SettingsView.swift"
+    },
+    {
+     "name": "Reason",
+     "first_seen": "Features/Report/ReportSheet.swift"
+    },
+    {
+     "name": "Report",
+     "first_seen": "Features/Thread/ThreadView.swift"
+    },
+    {
+     "name": "Send",
+     "first_seen": "Features/Thread/ThreadView.swift"
+    },
+    {
+     "name": "Submit",
+     "first_seen": "Features/Report/ReportSheet.swift"
+    },
+    {
+     "name": "typing...",
+     "first_seen": "Features/Thread/ThreadView.swift"
     }
    ]
   }
@@ -223,7 +304,7 @@
    },
    {
     "path": "Networking/APIClient.swift",
-    "lines": 45
+    "lines": 52
    },
    {
     "path": "Networking/APIPath.swift",
@@ -243,7 +324,7 @@
    },
    {
     "path": "Realtime/SocketMessages.swift",
-    "lines": 11
+    "lines": 12
    },
    {
     "path": "Shared/RelativeDateFormatter.swift",

@@ -7,15 +7,22 @@
 | Baseline (from code) | Referenced by features |
 |---|---|
 | api_methods | 6/7 |
-| ws_incoming | 3/3 |
+| ws_incoming | 3/4 |
 | ws_outgoing | 3/3 |
 | push_types | 2/3 |
 | app_routes | 5/5 |
 | source files | 17/17 |
 
+| Informational baseline | Mentioned in features | In specs | Specs only | Not mentioned |
+|---|---|---|---|---|
+| api_paths | 4/7 | 2 | 0 | `deleteAccount`, `markRead`, `notificationPrefs` |
+| ws_parsed_but_unconsumed | 0/1 | 0 | 0 | `readReceipt` |
+| localization_keys | 8/9 | 3 | 1 | 0 |
+
 **Identifiers with no caller in the app (candidates for not porting):**
 
 - api_methods: `deleteAccount`
+- ws_incoming: `readReceipt`
 - push_types: `digest`
 
 ## Feature list
@@ -43,14 +50,18 @@
 
 Opens a conversation, joins its realtime channel, shows incoming messages and typing, and sends new messages with one silent retry.
 
-1. open: fetchMessages, send joinThread, subscribe to incoming messages, then markThreadRead
-2. incoming messageReceived appends to the list
-3. send: sendMessage, append on success, show error on failure
-4. close: send leaveThread when the screen disappears
+1. open: fetchMessages, send joinThread, subscribe to incoming messages, then markThreadRead (Features/Thread/ThreadViewModel.swift:13-26)
+2. incoming messageReceived appends to the list (Features/Thread/ThreadViewModel.swift:18-19)
+3. send: sendMessage, append on success, show error on failure (Features/Thread/ThreadViewModel.swift:29-43)
+4. close: send leaveThread when the screen disappears (Features/Thread/ThreadViewModel.swift:54-55, ThreadView.swift:23)
 
 **Edge cases:** send button disabled while sending or when draft is empty; send failure: one silent retry, then 'Could not send' is shown; typing indicator never resets to false
 
 **Depends on:** `thread-list`, `notification-settings`
+
+## Core and high features without a flow spec
+
+- `push-routing`: No spec of its own: it only opens the thread route, whose behavior the send-message spec covers.
 
 ## Known issues found during inventory
 
@@ -58,10 +69,14 @@ Opens a conversation, joins its realtime channel, shows incoming messages and ty
 
 - `thread-list`: load failure is swallowed with try? and shows the empty state
 - `send-message`: typing action is sent on every keystroke without throttling
-- `send-message`: [FALSE_POSITIVE per messaging-core: Features/Thread/ThreadViewModel.swift:52 and ThreadView.swift:24 onDisappear] leaveThread is never sent when the screen closes
+- `send-message`: [FALSE_POSITIVE per messaging-core: Features/Thread/ThreadViewModel.swift:54-55 and ThreadView.swift:23 onDisappear] leaveThread is never sent when the screen closes
 - `send-message`: peerIsTyping is set true and never reset
 - `realtime-connection`: onMessage is a single closure: whoever sets it last wins
 - `report-message`: Router.present does not exist in Router.swift; the call in ThreadViewModel.report would not compile
+
+## Source file notes
+
+- `Navigation/Router.swift` (push-routing): shared: every navigating feature calls it
 
 ## Open questions
 

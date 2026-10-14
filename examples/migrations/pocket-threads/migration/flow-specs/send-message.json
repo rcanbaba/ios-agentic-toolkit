@@ -295,14 +295,14 @@
     "ws_out:leaveThread"
    ],
    "to": "idle",
-   "evidence": "Features/Thread/ThreadViewModel.swift:52"
+   "evidence": "Features/Thread/ThreadViewModel.swift:54-55"
   }
  ],
  "invariants": [
   {
    "id": "INV-1",
    "statement": "Every joinThread is followed by exactly one leaveThread when the screen disappears.",
-   "evidence": "Features/Thread/ThreadView.swift:24"
+   "evidence": "Features/Thread/ThreadView.swift:23"
   },
   {
    "id": "INV-2",
@@ -341,7 +341,7 @@
    "id": "FH-3",
    "situation": "markThreadRead fails",
    "current_behavior": "Ignored (try?). Unread badge stays until the next successful open.",
-   "evidence": "Features/Thread/ThreadViewModel.swift:27"
+   "evidence": "Features/Thread/ThreadViewModel.swift:26"
   }
  ],
  "cross_flow_interactions": [
@@ -474,6 +474,16 @@
    "then": "no second sendMessage is started",
    "covers": [
     "INV-2"
+   ]
+  },
+  {
+   "id": "AT-8",
+   "priority": "p2",
+   "given": "an open conversation",
+   "when": "the peer starts typing (typingStarted)",
+   "then": "'typing...' is shown below the messages",
+   "covers": [
+    "behavior"
    ]
   }
  ],

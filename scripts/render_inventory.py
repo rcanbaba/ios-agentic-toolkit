@@ -7,8 +7,9 @@ Deterministic step of the feature-inventory skill. Reads
   <migration-dir>/inventory/reconciliation.json   optional, from reconcile_inventory.py
   <migration-dir>/inventory/parts/*.json          for open questions
 and writes <migration-dir>/inventory/INVENTORY.md with: completeness against the
-baseline, dead identifiers, the feature list per area, core flows, known issues
-and open questions. The Markdown is derived; edit the parts, not the rendering.
+baseline (identifier fields, files, text mentions of informational keys), dead
+identifiers, the feature list per area, core flows, core/high features without a flow
+spec and why, known issues, source file notes and open questions. The Markdown is derived; edit the parts, not the rendering.
 
 Usage: render_inventory.py [--migration-dir <dir>] [--title <text>]
 Exit code 0 = rendered, 2 = usage/IO error.
@@ -48,6 +49,13 @@ def render(mig, title):
     fl = cov["files"]
     L.append(f"| source files | {fl['covered']}/{fl['total']} |")
     L.append("")
+    text = {k: c for k, c in cov.get("text_coverage", {}).items() if c["known"]}
+    if text:
+        L += ["| Informational baseline | Mentioned in features | In specs | Specs only | Not mentioned |", "|---|---|---|---|---|"]
+        L += [f"| {k} | {c['referenced_in_inventory']}/{c['known']} | {c['referenced_in_specs']} | {len(c['in_specs_only'])} | "
+              + (", ".join(f"`{n}`" for n in c["unreferenced"][:8]) + (" ..." if len(c["unreferenced"]) > 8 else "") if c["unreferenced"] else "0") + " |"
+              for k, c in text.items()]
+        L.append("")
     dead = {k: v for k, v in rec.get("dead_identifiers", {}).items() if v}
     if dead:
         L += ["**Identifiers with no caller in the app (candidates for not porting):**", ""]
@@ -60,6 +68,8 @@ def render(mig, title):
         issues.append(f"{len(cov['duplicate_ids'])} duplicate ids")
     if cov.get("core_high_without_flow"):
         issues.append(f"{len(cov['core_high_without_flow'])} core/high features without a flow")
+    if cov.get("core_high_without_spec"):
+        issues.append(f"{len(cov['core_high_without_spec'])} core/high features without a flow spec or spec_note")
     if cov.get("problems"):
         issues.append(f"{len(cov['problems'])} invalid parts")
     if issues:
@@ -86,11 +96,19 @@ def render(mig, title):
                 L += ["", "**Depends on:** " + ", ".join(f"`{d}`" for d in f["depends_on"])]
             L.append("")
 
+    noted = [f for f in features if f.get("spec_note")]
+    if noted:
+        L += ["## Core and high features without a flow spec", ""] + [f"- `{f['id']}`: {f['spec_note']}" for f in noted] + [""]
+
     L += ["## Known issues found during inventory", ""]
     for area, heading in areas:
         items = [(f["id"], k) for f in by_area[area] for k in f.get("known_issues", [])]
         if items:
             L += [f"### {heading} ({len(items)})", ""] + [f"- `{i}`: {k}" for i, k in items] + [""]
+
+    notes = [(f["id"], path, note) for f in features for path, note in f.get("source_file_notes", {}).items()]
+    if notes:
+        L += ["## Source file notes", ""] + [f"- `{path}` ({fid}): {note}" for fid, path, note in notes] + [""]
 
     L += ["## Open questions", ""]
     for part in parts:

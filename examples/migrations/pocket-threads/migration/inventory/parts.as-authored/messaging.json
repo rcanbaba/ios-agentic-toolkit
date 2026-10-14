@@ -31,9 +31,9 @@
     "tap a conversation to open it"
    ],
    "flow": [
-    "screen appears and loads threads via fetchThreads",
-    "on threadUpdated the list reloads",
-    "tap navigates to the thread route"
+    "screen appears and loads threads via fetchThreads (Features/Threads/ThreadListView.swift:10, ThreadListViewModel.swift:8)",
+    "on threadUpdated the list reloads (Features/Threads/ThreadListViewModel.swift:9-11)",
+    "tap navigates to the thread route (Features/Threads/ThreadListViewModel.swift:14-16)"
    ],
    "states_and_edge_cases": [
     "empty: 'No conversations yet' overlay",
@@ -92,9 +92,9 @@
     "long-press a message to report it"
    ],
    "flow": [
-    "open: fetchMessages, then join the realtime thread",
-    "incoming messageReceived appends to the list",
-    "send: sendMessage, append on success, show error on failure"
+    "open: fetchMessages, then join the realtime thread (Features/Thread/ThreadViewModel.swift:13-15)",
+    "incoming messageReceived appends to the list (Features/Thread/ThreadViewModel.swift:18-19)",
+    "send: sendMessage, append on success, show error on failure (Features/Thread/ThreadViewModel.swift:29-43)"
    ],
    "states_and_edge_cases": [
     "send button disabled while sending or when draft is empty"

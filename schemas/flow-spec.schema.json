@@ -17,6 +17,9 @@
     "actors": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "description": "e.g. user roles, server, media engine, system." },
     "related_features": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" }, "description": "Inventory feature ids this flow covers. Their api_methods / ws_incoming / ws_outgoing must appear in the spec or in excluded_identifiers." },
     "preconditions": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "base_flow": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Optional: flow_id of a spec this one extends (a variant of a shared flow). Shared steps are specified there, not repeated." },
+    "scope_notes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Optional: what this spec deliberately covers or leaves to other specs." },
+    "entry_states": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" }, "description": "Optional: states the flow can start in (several entry points). Default: the first state. Every state must be reachable from one of them." },
     "states": {
       "type": "array",
       "minItems": 2,
@@ -133,7 +136,9 @@
           "options": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
           "rule": { "type": ["string", "null"], "description": "Cross-cutting rule id this question is an instance of (see cross_cutting_decisions), or null." },
           "decision": { "type": ["string", "null"], "description": "Written back from DECISIONS.md once decided. 'defer to porting' is a valid decision." },
-          "decided_on": { "type": ["string", "null"], "description": "ISO date of the decision." }
+          "decided_on": { "type": ["string", "null"], "description": "ISO date of the decision." },
+          "decision_ref": { "type": ["string", "null"], "description": "Where the decision is recorded, e.g. a DECISIONS.md topic or rule id. A decided question is never asked again." },
+          "decision_evidence": { "type": ["string", "null"], "description": "Required when the decision aligns with a legacy/old app: path/File.swift:line evidence that the old source was actually read." }
         }
       }
     },
@@ -164,7 +169,7 @@
           "given": { "type": "string", "minLength": 1 },
           "when": { "type": "string", "minLength": 1 },
           "then": { "type": "string", "minLength": 1 },
-          "covers": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^(happy_path|INV-[0-9]+|INT-[0-9]+|FH-[0-9]+)$" }, "description": "What this test covers. Every invariant, interruption and failure item must be covered, and at least one test covers happy_path." }
+          "covers": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^(happy_path|behavior|INV-[0-9]+|INT-[0-9]+|FH-[0-9]+)$" }, "description": "What this test covers: happy_path, an INV-/INT-/FH- id, or behavior for a plain behavior test. Every invariant, interruption and failure item must be covered, and at least one test covers happy_path." }
         }
       }
     },

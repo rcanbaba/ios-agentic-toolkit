@@ -36,9 +36,9 @@
     "tap a conversation to open it"
    ],
    "flow": [
-    "screen appears and loads threads via fetchThreads",
-    "on threadUpdated the list reloads",
-    "tap navigates to the thread route"
+    "screen appears and loads threads via fetchThreads (Features/Threads/ThreadListView.swift:10, ThreadListViewModel.swift:8)",
+    "on threadUpdated the list reloads (Features/Threads/ThreadListViewModel.swift:9-11)",
+    "tap navigates to the thread route (Features/Threads/ThreadListViewModel.swift:14-16)"
    ],
    "states_and_edge_cases": [
     "empty: 'No conversations yet' overlay",
@@ -98,10 +98,10 @@
     "long-press a message to report it"
    ],
    "flow": [
-    "open: fetchMessages, send joinThread, subscribe to incoming messages, then markThreadRead",
-    "incoming messageReceived appends to the list",
-    "send: sendMessage, append on success, show error on failure",
-    "close: send leaveThread when the screen disappears"
+    "open: fetchMessages, send joinThread, subscribe to incoming messages, then markThreadRead (Features/Thread/ThreadViewModel.swift:13-26)",
+    "incoming messageReceived appends to the list (Features/Thread/ThreadViewModel.swift:18-19)",
+    "send: sendMessage, append on success, show error on failure (Features/Thread/ThreadViewModel.swift:29-43)",
+    "close: send leaveThread when the screen disappears (Features/Thread/ThreadViewModel.swift:54-55, ThreadView.swift:23)"
    ],
    "states_and_edge_cases": [
     "send button disabled while sending or when draft is empty",
@@ -142,7 +142,7 @@
    "legacy_naming": [],
    "known_issues": [
     "typing action is sent on every keystroke without throttling",
-    "[FALSE_POSITIVE per messaging-core: Features/Thread/ThreadViewModel.swift:52 and ThreadView.swift:24 onDisappear] leaveThread is never sent when the screen closes",
+    "[FALSE_POSITIVE per messaging-core: Features/Thread/ThreadViewModel.swift:54-55 and ThreadView.swift:23 onDisappear] leaveThread is never sent when the screen closes",
     "peerIsTyping is set true and never reset"
    ],
    "source_files": [
@@ -354,9 +354,9 @@
     "tap a push notification"
    ],
    "flow": [
-    "decode the push type",
-    "for newMessage / mention navigate to the thread route",
-    "anything else is dropped"
+    "decode the push type (Push/PushHandler.swift:3)",
+    "for newMessage / mention navigate to the thread route (Push/PushHandler.swift:5-8)",
+    "anything else is dropped (Push/PushHandler.swift:9-10)"
    ],
    "states_and_edge_cases": [
     "push without thread_id is ignored"
@@ -387,6 +387,27 @@
     "Navigation/Router.swift",
     "Navigation/AppRoute.swift"
    ],
+   "source_file_notes": {
+    "Navigation/Router.swift": "shared: every navigating feature calls it"
+   },
+   "spec_note": "No spec of its own: it only opens the thread route, whose behavior the send-message spec covers.",
+   "area": "settings"
+  }
+ ],
+ "unassigned_files": [
+  {
+   "file": "Networking/APIClient.swift",
+   "reason": "shared API client, used by every feature",
+   "area": "messaging"
+  },
+  {
+   "file": "Networking/APIPath.swift",
+   "reason": "path declarations",
+   "area": "messaging"
+  },
+  {
+   "file": "Shared/RelativeDateFormatter.swift",
+   "reason": "shared formatting utility, no feature of its own",
    "area": "settings"
   }
  ]
