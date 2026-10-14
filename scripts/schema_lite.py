@@ -1,6 +1,6 @@
 """Dependency-free subset of JSON Schema used by the toolkit's validators.
 
-Supported keywords: type, required, properties, additionalProperties, items,
+Supported keywords: type, required, properties, additionalProperties (false or a schema), items,
 enum, minItems, minLength, minimum, maximum, pattern.
 """
 
@@ -60,3 +60,5 @@ def check_schema(value, schema, path, errors):
                 check_schema(item, props[key], f"{path}.{key}", errors)
             elif schema.get("additionalProperties") is False:
                 errors.append(f"{path}: unexpected field '{key}'")
+            elif isinstance(schema.get("additionalProperties"), dict):
+                check_schema(item, schema["additionalProperties"], f"{path}.{key}", errors)

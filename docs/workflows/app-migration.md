@@ -1,13 +1,14 @@
 # Workflow: App Migration (Feature Inventory & Flow Specs)
 
-**Status:** implemented · **Skills:** [`feature-inventory`](../../skills/feature-inventory/SKILL.md), [`flow-spec`](../../skills/flow-spec/SKILL.md) · **Contracts:** [`feature-inventory-part.schema.json`](../../schemas/feature-inventory-part.schema.json), [`inventory-verification.schema.json`](../../schemas/inventory-verification.schema.json), [`flow-spec.schema.json`](../../schemas/flow-spec.schema.json) · **Evals:** [`evals/feature-inventory`](../../evals/feature-inventory/README.md), [`evals/flow-spec`](../../evals/flow-spec/README.md)
+**Status:** implemented · **Skills:** [`feature-inventory`](../../skills/feature-inventory/SKILL.md), [`flow-spec`](../../skills/flow-spec/SKILL.md), [`port-prep`](../../skills/port-prep/SKILL.md) · **Contracts:** [`feature-inventory-part.schema.json`](../../schemas/feature-inventory-part.schema.json), [`inventory-verification.schema.json`](../../schemas/inventory-verification.schema.json), [`flow-spec.schema.json`](../../schemas/flow-spec.schema.json) · **Evals:** [`evals/feature-inventory`](../../evals/feature-inventory/README.md), [`evals/flow-spec`](../../evals/flow-spec/README.md)
 
 Prepares the migration of a large existing iOS app to a new app: a
 complete, independently verified **feature inventory** of what the old app
 does, **flow specs** (state machines with evidence and acceptance tests) for
-its critical flows, and a **decision log** that separates "what it does
-today" from "what the new app should do". Nothing in the old app is
-modified.
+its critical flows, a **decision log** that separates "what it does
+today" from "what the new app should do", an **independent audit** of all
+of it, and a **port preparation** that untangles the core layer. Nothing in
+the old app is modified.
 
 ## Why
 
@@ -55,6 +56,11 @@ flowchart TD
     VS --> D["PENDING_DECISIONS.md<br/>cross-cutting rules · default rule · per-flow"]
     D --> H2{"Human decides"}
     H2 --> L["DECISIONS.md → written back into specs"]
+    L --> AU["Audit agent (fresh)<br/>artifacts vs code · script logs"]
+    AU --> AF["AUDIT.md<br/>finding → resolution"]
+    AF -- "data-loss / wrong" --> M
+    AF --> H3{"Human confirms<br/>core boundary"}
+    H3 --> PP["Port preparation<br/>closure · untangle · ledger"]
 ```
 
 This is the first workflow in the toolkit that uses subagents. The
@@ -72,7 +78,9 @@ verification.
 | 4 | Reconcile: attach unreferenced identifiers by call site, map cross-area ids, merge duplicates, assign strays, record dead identifiers | deterministic + orchestrator for ambiguities | `inventory/reconciliation.json`, updated parts |
 | 5 | Verify by end-to-end flow scope with fresh agents, plus a missing-feature hunter; apply patches safely; annotate false positives; render | verifier agents + deterministic | `verification/<scope>.json`, `applied.json`, `INVENTORY.md` |
 | 6 | Flow specs for the critical flows: state machine, invariants, interruptions, failures, cross-flow, as-is bugs, open decisions, acceptance tests | flow agents + validator | `flow-specs/<flow>.json`, `.md` |
-| 7 | Decisions: cross-cutting rules decided once, a default rule, per-flow questions deferred; written back into the specs | orchestrator + **human** | `PENDING_DECISIONS.md`, `DECISIONS.md` |
+| 7 | Decisions: cross-cutting rules decided once, a default rule, per-flow questions generated from the specs and deferred; written back into the specs | orchestrator + **human** + deterministic | `PENDING_DECISIONS.md`, `DECISIONS.md` |
+| 8 | Independent audit of the artifacts against the code and the scripts' logs; every finding gets a resolution | audit agent + orchestrator | `AUDIT.md` |
+| 9 | Port preparation: core type-dependency closure, coordinators and models tangled into UI, decoding changes in screen files, porting ledger | orchestrator + **human** (core boundary) | `port/core-closure.md`, `port/untangle.md`, `port/LEDGER.md` |
 
 Everything lives under `.migration/` in the target repository, kept out of
 git via `.git/info/exclude`.
@@ -88,10 +96,14 @@ git via `.git/info/exclude`.
 | `inventory/reconciliation.json` | `reconcile_inventory.py` | the orchestrator (ambiguities), `render_inventory.py` (dead identifiers) |
 | `reconcile.overrides.json` | the orchestrator after reading reports | `reconcile_inventory.py` |
 | `verification/scopes.json`, `<scope>.json` | the orchestrator; verifier agents | `apply_verification.py` |
+| `verification/orchestrator.json` | the orchestrator: settled disagreements, corrected replaces, `spec_note`s | `apply_verification.py` |
 | `verification/applied.json` | `apply_verification.py` | the orchestrator; re-runs (fingerprints make apply idempotent) |
 | `inventory/INVENTORY.md` | `render_inventory.py` | humans |
 | `flow-specs/<flow>.json` | flow agents; decisions written back | `validate_flow_spec.py`, `render_flow_spec.py`, the porting step |
-| `PENDING_DECISIONS.md`, `DECISIONS.md` | the orchestrator; the human | the specs (`cross_cutting_decisions`, `open_decisions[].decision`) |
+| `PENDING_DECISIONS.md` | the orchestrator (rules, default rule); `render_pending.py` (per-flow questions) | the human |
+| `DECISIONS.md` | the human, recorded by the orchestrator | the specs (`cross_cutting_decisions`, `open_decisions[].decision`, `decision_ref`) |
+| `AUDIT.md` | the audit agent; resolutions by the orchestrator | the human; toolkit lessons |
+| `port/*.md` | the `port-prep` skill | the porting work |
 
 Changing a schema means updating its validator, the skill that writes it,
 the agent prompt template, and the example together.
@@ -108,11 +120,15 @@ the agent prompt template, and the example together.
 | Attach unreferenced identifiers to features | **Deterministic** by call site when the owner is unique; **agentic** for ambiguous files |
 | Map guessed cross-area ids | Deterministic (strip notes, close match) with agentic overrides |
 | Verify features against code | **Agentic** (fresh agents, scoped by flow) |
-| Patch safety: replace needs the old value; never collapse a list; every field patchable | **Deterministic** (`apply_verification.py`) |
+| Patch safety: replace swaps exactly one item matched by exact text or unique prefix, otherwise nothing changes and it is listed for review; never append, never collapse; every field patchable | **Deterministic** (`apply_verification.py`) |
+| `file:line` evidence exists and is inside the file (core/high flow steps, patches, specs) | **Deterministic** (`evidence.py`) |
+| Mentions of informational baseline keys (paths, SDKs, notifications, plist keys) | **Deterministic** (`merge_inventory.py` text coverage) |
 | Resolve verifier disagreements | **Agentic** by direct code read, recorded as a patch |
 | Flow state machines, invariants, interruptions, tests | **Agentic** (flow agents) |
 | References, evidence, reachability, identifier completeness, test coverage | **Deterministic** (`validate_flow_spec.py`) |
-| Readable renderings | **Deterministic** (`render_inventory.py`, `render_flow_spec.py`) |
+| Readable renderings, the per-flow pending questions | **Deterministic** (`render_inventory.py`, `render_flow_spec.py`, `render_pending.py`) |
+| Auditing what agents and scripts produced | **Agentic** (a fresh audit agent) |
+| Core boundary, untangling plan | **Agentic**, boundary confirmed by the **human** |
 | Target behavior | **Human** (decisions), never an agent |
 
 ## Context engineering
@@ -136,6 +152,9 @@ the agent prompt template, and the example together.
 | Which flows are critical | **Human** confirms the proposed list |
 | Cross-cutting rules, default rule | **Human** |
 | Per-flow questions | **Human**, deferred to porting time by default |
+| "Align with the old app" | Decided only with `file:line` evidence that the old source was read |
+| Audit findings | Agent proposes a resolution; data-loss and wrong findings are fixed before porting |
+| Core layer boundary for porting | **Human** confirms |
 | Any change to the old app | Never part of this workflow |
 
 ## Usage
@@ -155,7 +174,15 @@ corrections it reports.
 
 Proposes the critical flows from the inventory, waits for confirmation,
 writes and validates one spec per flow, then presents
-`.migration/PENDING_DECISIONS.md` for decisions and writes them back.
+`.migration/PENDING_DECISIONS.md` for decisions, writes them back and runs
+the independent audit.
+
+```
+/port-prep App/Networking App/Realtime App/Models
+```
+
+Confirms the core boundary with you, then writes the closure, the untangle
+list and the porting ledger under `.migration/port/`.
 
 Scripts can be run by hand at any point:
 
@@ -168,6 +195,8 @@ python3 scripts/apply_verification.py --migration-dir .migration [--dry-run]
 python3 scripts/render_inventory.py --migration-dir .migration --title "<App> feature inventory"
 python3 scripts/validate_flow_spec.py .migration/flow-specs/*.json --migration-dir .migration [--require-decisions]
 python3 scripts/render_flow_spec.py .migration/flow-specs/*.json
+python3 scripts/render_pending.py .migration/PENDING_DECISIONS.md .migration/flow-specs/*.json
+python3 scripts/merge_inventory.py --migration-dir .migration --coverage-only
 ```
 
 ## Example
@@ -181,8 +210,16 @@ the decision logs. `inventory/parts.as-authored/` holds the parts as the
 "area agents" wrote them, with the mistakes the real run produced: a guessed
 cross-area `depends_on`, identifiers a feature uses but did not list, a
 stray shared file, a wrong known issue, and a feature nobody claimed.
-Replaying the pipeline from them reproduces the checked-in outputs exactly
-(see the eval README).
+It also has a non-API helper, a request built over several lines, a decoded
+message nothing consumes, a source file path with a note attached, and an
+orchestrator patch with a `spec_note`.
+
+Two scripts keep the deterministic part honest:
+
+```sh
+evals/feature-inventory/replay.sh               # replay must reproduce the example exactly, twice
+python3 evals/feature-inventory/negative_cases.py   # each real-run defect stays fixed
+```
 
 ## Design decisions
 
@@ -204,8 +241,18 @@ Replaying the pipeline from them reproduces the checked-in outputs exactly
 - **Rendered Markdown is derived.** `INVENTORY.md` and the flow `.md` files
   are generated from JSON, so humans read one thing and scripts another
   without drift.
-- **No porting step here.** Building the new app from these artifacts is a
-  separate workflow; this one ends with validated specs and decisions.
+- **Exactly one item or nothing.** A patch that cannot be matched to exactly
+  one item changes nothing and waits for review. Silently appending or
+  fuzzy-matching left wrong claims next to their corrections in a real run.
+- **Evidence that resolves.** A `file:line` reference is checked against
+  the file, not just the pattern; plausible line numbers were often off.
+- **An audit before porting.** Verifiers check the inventory; nobody checked
+  the scripts until an independent audit found data they had silently
+  corrupted. The audit is now a stage with a standard finding → resolution
+  table.
+- **Port preparation, not porting.** The workflow ends by untangling the
+  core layer and opening a ledger. Porting features is a separate workflow,
+  to be built from the first real port.
 
 ## Lessons from real use
 
@@ -218,7 +265,7 @@ this repository.
 | Extracting only `public` methods missed the internal ones the app actually calls | Every non-private method is extracted, including those in extensions; `include_private` is opt-in |
 | Matching sub-route names by a bare `.name` attached them to hundreds of unrelated features | Call-site patterns are per project and match the navigation call form; the skill forbids bare-name patterns |
 | Attaching an identifier to every feature that shares a call-site file over-attributed | Attachment only when the file has one owner; multi-owner files are reported as ambiguous for a code read |
-| Verifiers' `replace` patches without the old value collapsed whole flows to one step | `replace` requires `old`; it swaps one item (exact or similar) or appends and flags; a list is never collapsed |
+| Verifiers' `replace` patches without the old value collapsed whole flows to one step | `replace` requires `old` and a list is never collapsed (tightened further after the audit, below) |
 | Verifiers encoded unsupported fields as prefixed strings inside `flow` | The patch schema covers every feature field; prefixed strings are rejected by the gate |
 | Agents wrote multi-value strings (`"a, b; c"`) in identifier fields | Identifier fields are validated per item against a pattern and the baseline, in parts and in patches |
 | Parallel authors invented cross-area ids and duplicated features | A reconciliation step with overrides, a log, and merge of duplicates |
@@ -227,3 +274,26 @@ this repository.
 | Two verifiers disagreed on the same feature | The orchestrator resolves it by a direct code read and records the result as its own patch |
 | Agents drifted into target behavior ("should") inside flows and specs | Prompts require as-is only; target behavior must go to `open_decisions`; the eval grades this |
 | 88 open questions across 8 flows mostly repeated the same themes | Decisions are grouped into cross-cutting rules decided once, plus a default rule; the rest is deferred to porting |
+
+### Found by the independent audit of a full run
+
+The audit compared the artifacts with the code and with the scripts' logs.
+Each finding was resolved in the project and then here:
+
+| Finding | Resolution |
+|---|---|
+| A replace matched its item by similarity, or appended when nothing matched; wrong claims stayed next to their corrections. An `old ==> new` form changed every item containing `old` | `old` is required and must match exactly one item, by exact text or unique prefix; otherwise nothing changes and the patch is listed for review |
+| Known-issue verdicts matched a 40-character prefix and annotated the wrong issue | Exact text or unique prefix; unmatched verdicts are listed (`annotate_unmatched`) |
+| A bare `.name` route pattern attached routes through SwiftUI tokens (`.main`, `.center`, `.cancel`) | Route patterns must be route-shaped; bare ones are refused |
+| Identifiers that appear in the files of many features were attached to all of them | More than two candidate features: reported as ambiguous, not attached |
+| Merging duplicates dropped scalar fields and left the dropped id in scopes and specs | Higher criticality kept, summaries combined, missing fields copied; ids rewritten in scopes and specs, resolved in patches |
+| Normalizing `source_files` deleted `"(note)"` remarks, and `REPLACES [...]` patches were discarded | Notes move to `source_file_notes`; source-file patches must be real paths and are rejected otherwise |
+| Non-API helpers were counted as API methods; multi-line request builders lost their path | `exclude` for helpers; the path is searched in the whole method body |
+| "Parsed but unconsumed" counted only `case .x`, so messages consumed via `==` or a filter list looked dead | Switch arms (grouped too), `==`/`!=` comparisons and array-literal membership all count |
+| The baseline missed SDK callbacks, dependencies, notifications, plist keys and other enumerable sources | New extractor kinds; informational keys get text coverage in the inventory and specs |
+| Re-merging rebuilt the inventory from parts and lost patches applied to it | `--coverage-only`, and every correction is a patch on the parts |
+| Evidence lines pointed past the end of files; specs had unreachable states and uncovered failures | Evidence is resolved against the source; unreachable states and uncovered items are errors; `entry_states` for several entry points |
+| Pending questions were rebuilt by hand and re-listed decided ones | `render_pending.py` generates them from the specs; decided questions never reappear |
+| "Align with the legacy app" was marked decided without anyone reading the old source | Such decisions need `decision_evidence` with `file:line` |
+| Core/high features without a spec had no recorded reason | `spec_note` via an orchestrator patch; `--coverage-only` fails without it |
+| Extensions in screen files changed how core models decoded | A port-preparation step searches for them before porting |

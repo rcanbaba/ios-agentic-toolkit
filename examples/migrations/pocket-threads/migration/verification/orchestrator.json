@@ -1,0 +1,13 @@
+{
+ "schema_version": "1.0",
+ "scope": "orchestrator",
+ "verified_features": [],
+ "patches": [
+  {"feature_id": "push-routing", "field": "spec_note", "action": "replace",
+   "value": "No spec of its own: it only opens the thread route, whose behavior the send-message spec covers.",
+   "evidence": "Push/PushHandler.swift:5-8"}
+ ],
+ "known_issue_checks": [],
+ "missing_features": [],
+ "summary": "Decisions the orchestrator made by direct code read: spec notes for core/high features without a flow spec."
+}

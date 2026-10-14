@@ -47,7 +47,7 @@
             }
           },
           "user_actions": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Every action the user can take, including secondary, long-press, menu and sheet actions." },
-          "flow": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Ordered steps / state transitions. Required (non-empty) for core and high criticality." },
+          "flow": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Ordered steps / state transitions. Required (non-empty) for core and high criticality, and then every step carries path/File.swift:line evidence that exists." },
           "states_and_edge_cases": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Loading, empty, error, permission denied, offline, backgrounding, interruption, limits, role changes." },
           "api_methods": { "type": "array", "items": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" }, "description": "Exact API client method names from enumerations.json, one per item." },
           "ws_incoming": { "type": "array", "items": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" }, "description": "Exact incoming realtime message case names, one per item." },
@@ -63,6 +63,8 @@
           "legacy_naming": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Inconsistent or historical names: types, JSON keys, file names." },
           "known_issues": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "TODO/FIXME, fragile code, dead code, half-finished parts. As observed, no fixes proposed." },
           "source_files": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "description": "Every file implementing the feature, relative to the source root, one path per item." },
+          "source_file_notes": { "type": "object", "additionalProperties": { "type": "string", "minLength": 1 }, "description": "{path: note} for remarks about a source file (shared, partly dead, ...). Paths stay clean in source_files; reconcile_inventory.py moves \"path (note)\" items here." },
+          "spec_note": { "type": "string", "minLength": 1, "description": "Set during flow-spec for a core/high feature that no flow spec covers: why (covered by another flow's shared step, trivial, out of migration scope, ...)." },
           "verified_addition": { "type": "string", "description": "Set by apply_verification.py: the verification scope that added this feature." },
           "merged_from": { "type": "array", "items": { "type": "string" }, "description": "Set by reconcile_inventory.py: ids of duplicate features merged into this one." },
           "migration_notes": { "type": "array", "items": { "type": "string" }, "description": "Decisions recorded against this feature (see DECISIONS.md)." }

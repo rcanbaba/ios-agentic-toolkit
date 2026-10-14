@@ -39,13 +39,20 @@ Output file (the only file you may write): `{{MIGRATION_DIR}}/inventory/parts/{{
    behavior, no "should", no fixes. Observations about fragile or dead code go
    to `known_issues`, stated as observations.
 7. `flow` is required for `core` and `high` features: ordered steps and state
-   transitions, including what happens on failure and interruption.
+   transitions, including what happens on failure and interruption. **Every
+   step of a core/high flow carries `path/File.swift:line` evidence in the
+   step text**, e.g. `"send: sendMessage, append on success
+   (Features/Thread/ThreadViewModel.swift:29-43)"`. The validator checks that
+   the file exists and the lines are inside it.
 8. `user_actions` lists every action: primary buttons, secondary, long-press,
    swipe, context menu, sheet and alert actions, toggles.
 9. `states_and_edge_cases`: loading, empty, error, permission denied, offline,
    backgrounding, interruption, limits, role changes, as implemented.
 10. What you could not determine from code goes to `open_questions`, not into
     a feature.
+11. `source_files` items are bare paths, one per item. A remark about a file
+    ("shared with X", "mostly dead") goes to `source_file_notes`
+    (`{"path": "note"}`), never into the path string.
 
 ## Process
 

@@ -3,7 +3,9 @@
   "api_methods": [
    "deleteAccount"
   ],
-  "ws_incoming": [],
+  "ws_incoming": [
+   "readReceipt"
+  ],
   "ws_outgoing": [],
   "push_types": [
    "digest"
@@ -13,6 +15,12 @@
  "ambiguous": [],
  "unresolved_depends_on": [],
  "log": [
+  {
+   "action": "normalize_source_file",
+   "feature": "push-routing",
+   "from": "Navigation/Router.swift (shared: every navigating feature calls it)",
+   "to": "Navigation/Router.swift"
+  },
   {
    "action": "attach",
    "field": "api_methods",

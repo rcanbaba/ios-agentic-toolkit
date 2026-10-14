@@ -25,12 +25,18 @@ Output files (the only files you may write):
 3. States are what the app is in (snake_case ids; the first state is the
    initial one). For each: actor, what the user sees, which resources are
    held (media channel and role, realtime subscriptions, timers, capture).
+   If the flow has several entry points (a push, a deeplink, a screen), list
+   their states in `entry_states`; every state must be reachable from one.
+   If this flow is a variant of another spec, set `base_flow` and specify
+   only what differs; say what is out of scope in `scope_notes`.
 4. Events are what moves the machine: user actions, API responses, realtime
    messages, SDK callbacks, system events, timers, with the exact identifier.
 5. Every transition has ordered `actions` using exact identifiers
    (`api:<method>`, `ws_out:<action>`, `sdk:<call>`, `ui:<...>`,
    `analytics:<...>`, `timer:<...>`) and `path/File.swift:line` evidence.
-   Use `"*"` as `from` for transitions that apply in any state.
+   The validator checks that every evidence file exists and the lines are
+   inside it; read the line before you cite it. Use `"*"` as `from` for
+   transitions that apply in any state.
 6. Completeness: every `api_methods`, `ws_incoming` and `ws_outgoing`
    identifier of the related features must appear in the spec (event
    identifier or action) or be listed in `excluded_identifiers` with an
@@ -50,12 +56,14 @@ Output files (the only files you may write):
 11. `open_decisions` (ids `OD-n`): every place where the target behavior
     must be decided by a person. Give current behavior and options. **Never
     decide them yourself** and never put target behavior anywhere else.
-    Leave `decision` and `decided_on` null.
+    Leave `decision` and `decided_on` null. "Same as the old app" is not a
+   decision you can make either.
 12. `acceptance_tests` (ids `AT-n`): given/when/then with `covers` listing
-    `happy_path`, `INV-n`, `INT-n`, `FH-n`. Every invariant, interruption and
-    failure item must be covered, and at least one test covers the happy
-    path.
-13. Validate and render until valid:
+    `happy_path`, `INV-n`, `INT-n`, `FH-n`, or `behavior` for a plain
+    behavior test. Every invariant, interruption and failure item must be
+    covered, and at least one test covers the happy path.
+13. Never edit the `.md`: it is generated from the JSON. Validate and render
+    until valid:
     `python3 {{PLUGIN_ROOT}}/scripts/validate_flow_spec.py {{MIGRATION_DIR}}/flow-specs/{{FLOW_ID}}.json --migration-dir {{MIGRATION_DIR}}`
     `python3 {{PLUGIN_ROOT}}/scripts/render_flow_spec.py {{MIGRATION_DIR}}/flow-specs/{{FLOW_ID}}.json`
 

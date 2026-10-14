@@ -12,7 +12,9 @@ baseline extracted from code, so most of this rubric is scripted.
 | Parts | every part passes `validate_inventory_part.py` |
 | Coverage | `coverage.json`: all source files covered; no unknown identifiers; no dangling `depends_on`; no duplicate ids; no core/high feature without a flow; unreferenced identifiers are exactly the `dead_identifiers` of `reconciliation.json` |
 | Reconciliation | no `ambiguous` and no `unresolved_depends_on` left, or each one resolved by a recorded override or patch |
-| Verification | every core/high feature is in at least one scope; every verification file passes `apply_verification.py --dry-run`; no `appended_instead_of_replace` left unresolved in `applied.json` |
+| Evidence | every core/high flow step carries `file:line` that resolves to an existing file and lines inside it |
+| Verification | every core/high feature is in at least one scope; every verification file passes `apply_verification.py --dry-run`; `applied.json` has no `skipped` and no `annotate_unmatched` left |
+| Text coverage | every unreferenced informational name (unconsumed messages, API paths without a feature, SDKs) was looked at |
 | Read-only | `git status` shows no change outside `.migration/` |
 
 ## Judged checks (human or model grader, 0–2 each)
@@ -28,22 +30,42 @@ baseline extracted from code, so most of this rubric is scripted.
 | Hunter sweep | Did the missing-feature hunter report what it swept, so that "nothing missing" is credible? |
 | Honesty | Are open questions real unknowns rather than things the agent could have read? |
 
-## Planned fixtures
+## Fixtures
 
-| Case | What it tests |
-|---|---|
-| [`examples/migrations/pocket-threads`](../../examples/migrations/pocket-threads) | End-to-end pipeline on a tiny synthetic app: call-site attachment, dangling id resolution, dead identifiers, patch application, false-positive annotation, missing feature |
-| API client with methods in extensions and without access modifiers | Baseline includes internal methods |
-| Sub-route names that collide with ordinary identifiers | Call-site patterns must match the navigation form, not a bare name |
-| One file shared by several features | Reconciliation reports ambiguity instead of over-attributing |
-| Verifier that rewrites a flow as one step | `replace` without `old` is rejected; the flow keeps its steps |
-| Two verifiers disagreeing on one feature | The orchestrator decides by direct code read and records it |
+| Case | What it tests | Status |
+|---|---|---|
+| [`examples/migrations/pocket-threads`](../../examples/migrations/pocket-threads) | End-to-end pipeline on a tiny synthetic app: call-site attachment, dangling id resolution, dead identifiers, unconsumed messages, excluded helpers, note normalization, patch application, false-positive annotation, missing feature, spec notes | `replay.sh` |
+| API client with methods in extensions, without access modifiers, and with multi-line requests | Baseline includes internal methods and their paths | example + `negative_cases.py` |
+| Route names that collide with SwiftUI tokens | Bare route patterns are refused | `negative_cases.py` |
+| An identifier called from the files of several features | Reconciliation reports ambiguity instead of over-attributing | `negative_cases.py` |
+| Verifier that rewrites a flow as one step, or a replace that matches nothing | Nothing changes; the patch is listed for review | `negative_cases.py` |
+| Two verifiers disagreeing on one feature | The orchestrator decides by direct code read and records it | planned |
+| SDK delegate callbacks against a pod header; dependencies; plist, string and notification keys | New extractor kinds | `negative_cases.py` (builds its own fixture) |
 
 ## Running
 
-Not automated yet. For the scripts: copy the example, replace
-`inventory/parts/` with `inventory/parts.as-authored/`, delete
-`reconciliation.json` and `applied.json`, run extract → merge → reconcile →
-merge → apply → reconcile → merge → render, and `diff -r` against the
-checked-in example; the result must be identical, and a second run must
-change nothing. Score agent runs on a real repository with the rubric above.
+The deterministic part is automated:
+
+```sh
+evals/feature-inventory/replay.sh                    # [--update] after an intended change
+python3 evals/feature-inventory/negative_cases.py
+```
+
+`replay.sh` resets a copy of the example to the parts as the area agents
+wrote them and runs the whole pipeline (extract → merge → reconcile → merge
+→ apply → reconcile → merge → render → flow-spec validate/render → pending →
+coverage-only). The result must equal the checked-in example, and a second
+run must change nothing.
+
+`negative_cases.py` breaks a fresh copy in one way per case and checks that
+the scripts refuse or report it: replace without a unique match, joined,
+unknown or prefixed identifiers, flow steps without resolvable evidence,
+`REPLACES` source-file patches, unmatched known-issue verdicts, bare route
+patterns, identifiers shared by more than two features, lossy duplicate
+merges, spec evidence outside a file, unreachable states, uncovered
+invariants, blank exclusion reasons, undocumented "align with the legacy
+app" decisions, re-listed decided questions, and enum parsing. Every case
+comes from a defect seen in a real run, and each one fails on the scripts
+before the fix.
+
+Score agent runs on a real repository with the rubric above.

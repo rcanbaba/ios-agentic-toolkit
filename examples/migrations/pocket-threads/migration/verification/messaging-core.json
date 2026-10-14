@@ -7,12 +7,12 @@
  ],
  "patches": [
   {"feature_id": "send-message", "field": "flow", "action": "replace",
-   "old": "open: fetchMessages, then join the realtime thread",
-   "value": "open: fetchMessages, send joinThread, subscribe to incoming messages, then markThreadRead",
-   "evidence": "Features/Thread/ThreadViewModel.swift:14-27 - open() calls fetchMessages, joinThread, sets onMessage, then markThreadRead"},
+   "old": "open: fetchMessages, then join",
+   "value": "open: fetchMessages, send joinThread, subscribe to incoming messages, then markThreadRead (Features/Thread/ThreadViewModel.swift:13-26)",
+   "evidence": "Features/Thread/ThreadViewModel.swift:13-26 - open() calls fetchMessages, joinThread, sets onMessage, then markThreadRead"},
   {"feature_id": "send-message", "field": "flow", "action": "add",
-   "value": "close: send leaveThread when the screen disappears",
-   "evidence": "Features/Thread/ThreadViewModel.swift:52 - close() sends .leaveThread; ThreadView.swift:24 calls it onDisappear"},
+   "value": "close: send leaveThread when the screen disappears (Features/Thread/ThreadViewModel.swift:54-55, ThreadView.swift:23)",
+   "evidence": "Features/Thread/ThreadViewModel.swift:54-55 - close() sends .leaveThread; ThreadView.swift:23 calls it onDisappear"},
   {"feature_id": "send-message", "field": "states_and_edge_cases", "action": "add",
    "value": ["send failure: one silent retry, then 'Could not send' is shown", "typing indicator never resets to false"],
    "evidence": "Features/Thread/ThreadViewModel.swift:30-43 and :21"},
@@ -21,11 +21,11 @@
    "evidence": "Features/Thread/ThreadViewModel.swift:21"},
   {"feature_id": "send-message", "field": "api_methods", "action": "add",
    "value": "markThreadRead",
-   "evidence": "Features/Thread/ThreadViewModel.swift:27"}
+   "evidence": "Features/Thread/ThreadViewModel.swift:26"}
  ],
  "known_issue_checks": [
   {"feature_id": "send-message", "issue": "typing action is sent on every keystroke", "verdict": "confirmed", "evidence": "Features/Thread/ThreadView.swift:16 onChange calls typing() with no throttle"},
-  {"feature_id": "send-message", "issue": "leaveThread is never sent", "verdict": "false_positive", "evidence": "Features/Thread/ThreadViewModel.swift:52 and ThreadView.swift:24 onDisappear"}
+  {"feature_id": "send-message", "issue": "leaveThread is never sent", "verdict": "false_positive", "evidence": "Features/Thread/ThreadViewModel.swift:54-55 and ThreadView.swift:23 onDisappear"}
  ],
  "missing_features": [],
  "summary": "Checked send-message and thread-list against the view models. Corrected the open flow, added close, read receipt and failure handling; one known issue was a false positive."

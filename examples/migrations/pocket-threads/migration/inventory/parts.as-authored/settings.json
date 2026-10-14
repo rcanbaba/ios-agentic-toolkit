@@ -118,9 +118,9 @@
     "tap a push notification"
    ],
    "flow": [
-    "decode the push type",
-    "for newMessage / mention navigate to the thread route",
-    "anything else is dropped"
+    "decode the push type (Push/PushHandler.swift:3)",
+    "for newMessage / mention navigate to the thread route (Push/PushHandler.swift:5-8)",
+    "anything else is dropped (Push/PushHandler.swift:9-10)"
    ],
    "states_and_edge_cases": [
     "push without thread_id is ignored"
@@ -148,7 +148,7 @@
    "source_files": [
     "Push/PushHandler.swift",
     "Push/PushType.swift",
-    "Navigation/Router.swift",
+    "Navigation/Router.swift (shared: every navigating feature calls it)",
     "Navigation/AppRoute.swift"
    ]
   }

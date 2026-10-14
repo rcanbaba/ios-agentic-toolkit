@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/rcanbaba/ios-agentic-toolkit/schemas/inventory-verification.schema.json",
   "title": "Inventory Verification",
-  "description": "Output of one independent verification agent (or the missing-feature hunter). Patches are applied to inventory parts by apply_verification.py. Every patch and verdict carries file:line evidence. A replace patch on a list field must name the exact old item; it swaps one item and never collapses the list.",
+  "description": "Output of one independent verification agent (or the missing-feature hunter). Patches are applied to inventory parts by apply_verification.py. Every patch and verdict carries file:line evidence. A replace patch on a list field must name the old item (exact text or unique prefix); it swaps exactly one item, never appends and never collapses the list.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "scope", "verified_features", "patches", "known_issue_checks", "missing_features", "summary"],
@@ -37,13 +37,13 @@
               "name", "summary", "criticality", "user_roles", "entry_points", "screens", "user_actions", "flow",
               "states_and_edge_cases", "api_methods", "ws_incoming", "ws_outgoing", "sdk_usage", "app_routes",
               "push_types", "settings_flags", "analytics_events", "persistence", "localization_keys_sample",
-              "depends_on", "legacy_naming", "known_issues", "source_files", "new_feature"
+              "depends_on", "legacy_naming", "known_issues", "source_files", "spec_note", "new_feature"
             ],
             "description": "Every feature field is patchable. Do not encode a field inside another field's value."
           },
           "action": { "type": "string", "enum": ["add", "replace", "remove"], "description": "add/remove items of a list field; replace one list item (old required) or a scalar field. new_feature uses add." },
           "value": { "type": ["string", "array", "object"], "description": "One item, a list of items (add/remove), a screen object (screens), or a full feature object (new_feature). Never a multi-value string." },
-          "old": { "type": ["string", "object", "null"], "description": "Required for replace on a list field: the exact existing item being replaced. For scalar fields, the current value (optional)." },
+          "old": { "type": ["string", "object", "null"], "description": "Required for replace on a list field: the existing item's exact text, or a prefix that only that item starts with. Zero or several matches: the patch is not applied and is listed for manual review. For scalar fields, the current value (optional)." },
           "evidence": { "type": "string", "pattern": "\\.[A-Za-z0-9]+:[0-9]+", "description": "path/File.swift:line - what the code shows. A line number is required." }
         }
       }
@@ -56,7 +56,7 @@
         "required": ["feature_id", "issue", "verdict", "evidence"],
         "properties": {
           "feature_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
-          "issue": { "type": "string", "minLength": 1, "description": "The known_issues text being checked (a prefix is enough)." },
+          "issue": { "type": "string", "minLength": 1, "description": "The known_issues entry being checked: its exact text or a prefix only that entry starts with. Unmatched checks are listed for review, never applied to a similar entry." },
           "verdict": { "type": "string", "enum": ["confirmed", "false_positive", "unclear"] },
           "evidence": { "type": "string", "pattern": "\\.[A-Za-z0-9]+:[0-9]+", "description": "path/File.swift:line" }
         }
