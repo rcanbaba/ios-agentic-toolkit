@@ -251,8 +251,8 @@ python3 evals/feature-inventory/negative_cases.py   # each real-run defect stays
   corrupted. The audit is now a stage with a standard finding → resolution
   table.
 - **Port preparation, not porting.** The workflow ends by untangling the
-  core layer and opening a ledger. Porting features is a separate workflow,
-  to be built from the first real port.
+  core layer and opening a ledger. Porting is the separate
+  [App Port](app-port.md) workflow, built from the first real port.
 
 ## Lessons from real use
 

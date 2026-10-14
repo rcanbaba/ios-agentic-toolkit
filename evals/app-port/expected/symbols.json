@@ -1,0 +1,72 @@
+{
+  "errors_read": 10,
+  "plan": [
+    {
+      "symbols": [
+        "ChatTimeFormatter"
+      ],
+      "legacy": "Scenes/Features/Chat/Formatters.swift",
+      "target": "App/Features/Chat/Formatters.swift"
+    },
+    {
+      "symbols": [
+        "ProfileHeader"
+      ],
+      "legacy": "Scenes/Features/Profile/ProfileHeader.swift",
+      "target": "App/Features/Profile/ProfileHeader.swift"
+    },
+    {
+      "symbols": [
+        "User.isOnline"
+      ],
+      "legacy": "Scenes/Features/Profile/User+Presence.swift",
+      "target": "App/Features/Profile/User+Presence.swift"
+    }
+  ],
+  "applied": true,
+  "copied": [
+    "App/Features/Chat/Formatters.swift",
+    "App/Features/Profile/ProfileHeader.swift",
+    "App/Features/Profile/User+Presence.swift"
+  ],
+  "unresolved": [
+    {
+      "symbol": "FeedCountFormatter",
+      "candidates": [
+        "Scenes/Features/Feed/Formatters.swift"
+      ],
+      "candidate_count": 1,
+      "why": "basename already planned from Scenes/Features/Chat/Formatters.swift"
+    },
+    {
+      "symbol": "RowBadge",
+      "candidates": [
+        "Scenes/Features/Chat/MessageRow.swift",
+        "Scenes/Features/Feed/PostRow.swift"
+      ],
+      "candidate_count": 2
+    }
+  ],
+  "already_present": [
+    {
+      "symbol": "Tier",
+      "legacy_files": [
+        "Core/Models/User.swift"
+      ]
+    }
+  ],
+  "asset_members": [
+    "_1XBoost",
+    "follow",
+    "missingArt"
+  ],
+  "duplicates": [
+    {
+      "symbol": "ChatRoute",
+      "target_files": [
+        "App/Features/Chat/ChatModels.swift",
+        "App/Porting/Extracted/ChatRoute.swift"
+      ]
+    }
+  ]
+}

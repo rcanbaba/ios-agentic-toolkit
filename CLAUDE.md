@@ -7,8 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A Claude Code **plugin** (not an iOS app): a general iOS toolkit made of
 multiple workflows (crash, UI, release, ...). It is used from *other* iOS
 repositories (`/plugin install` or `claude --plugin-dir <this repo>`). This
-repo is where the toolkit is developed. Crash, design-system and app-migration
-workflows are implemented; the "Planned" rows in the README workflow table are
+repo is where the toolkit is developed. Crash, design-system, app-migration and
+app-port workflows are implemented; the "Planned" rows in the README workflow table are
 intentionally unbuilt.
 
 README.md stays general (principles, building blocks, workflow catalog).
@@ -75,6 +75,20 @@ Workflow-specific design, usage, decisions and lessons go in
   together, regenerating with `evals/feature-inventory/replay.sh --update`,
   and adding a case to `negative_cases.py` for every defect fixed.
 
+## Port workflow: how the parts connect
+
+- `skills/port-code/SKILL.md`: verbatim, build-error-driven port into the new
+  app (writes there); consumes `port-prep`'s ledger and a path map.
+  `scripts/port_missing_symbols.py` (missing symbol/member → unique legacy file;
+  duplicates → temporary copies to remove) and `scripts/port_assets.py`
+  (generated asset symbol → set; never AccentColor/app icons).
+- `skills/ui-port/SKILL.md`: parallel restyle agents on the design system;
+  `port-rules-template.md` and `restyle-agent-prompt.md` next to it;
+  `scripts/find_legacy_styling.py` measures, batches and gates.
+- Changing a port script's behavior means updating the skill, the fixture and
+  `evals/app-port/expected/` (`evals/app-port/run.sh --update`), and adding a
+  fixture case for every defect fixed.
+
 ## Commands
 
 ```sh
@@ -90,6 +104,9 @@ swift scripts/sample_colors.swift <image.png>
 # Migration: replay the whole pipeline on the example (must reproduce it exactly, twice)
 evals/feature-inventory/replay.sh            # --update regenerates the example after an intended change
 python3 evals/feature-inventory/negative_cases.py
+
+# Port: replay the port scripts on the synthetic fixture
+evals/app-port/run.sh                        # --update regenerates expected/
 
 # Validate plugin/marketplace manifests and skill frontmatter
 claude plugin validate .

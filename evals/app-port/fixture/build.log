@@ -1,0 +1,12 @@
+Compiling ProfileView.swift
+/work/target/App/Features/Profile/ProfileView.swift:9:13: error: cannot find 'ProfileHeader' in scope
+/work/target/App/Features/Profile/ProfileView.swift:5:15: error: cannot find type 'Tier' in scope
+/work/target/App/Features/Profile/ProfileView.swift:10:20: error: type 'ImageResource' has no member 'follow'
+/work/target/App/Features/Profile/ProfileView.swift:11:20: error: type 'ImageResource' has no member '_1XBoost'
+/work/target/App/Features/Profile/ProfileView.swift:12:20: error: type 'ImageResource' has no member 'missingArt'
+/work/target/App/Features/Profile/ProfileView.swift:17:13: error: cannot find 'RowBadge' in scope
+/work/target/App/Features/Profile/ProfileView.swift:20:23: error: value of type 'User' has no member 'isOnline'
+/work/target/App/Features/Chat/ChatView.swift:6:9: error: cannot find 'ChatTimeFormatter' in scope
+/work/target/App/Features/Chat/ChatView.swift:7:9: error: cannot find 'FeedCountFormatter' in scope
+/work/target/App/Features/Chat/ChatModels.swift:1:8: error: 'ChatRoute' is ambiguous for type lookup in this context
+/work/target/App/Features/Profile/ProfileView.swift:4:9: warning: variable 'x' was never used

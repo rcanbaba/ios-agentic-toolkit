@@ -1,7 +1,7 @@
 {
   "name": "ios-agentic-toolkit",
-  "version": "0.2.0",
-  "description": "Supervised, evidence-first agentic workflows for iOS engineering: crash investigation and approval-gated fixing, design systems from references to generated SwiftUI, and verified feature inventories and flow specs for migrating legacy apps.",
+  "version": "0.3.0",
+  "description": "Supervised, evidence-first agentic workflows for iOS engineering: crash investigation and approval-gated fixing, design systems from references to generated SwiftUI, verified feature inventories and flow specs for migrating legacy apps, and build-error-driven code ports with parallel design-system restyling.",
   "author": {
     "name": "rcanbaba",
     "url": "https://github.com/rcanbaba"
@@ -9,5 +9,15 @@
   "homepage": "https://github.com/rcanbaba/ios-agentic-toolkit",
   "repository": "https://github.com/rcanbaba/ios-agentic-toolkit",
   "license": "MIT",
-  "keywords": ["ios", "swift", "swiftui", "agentic-engineering", "crash-analysis", "crashlytics", "design-system", "app-migration"]
+  "keywords": [
+    "ios",
+    "swift",
+    "swiftui",
+    "agentic-engineering",
+    "crash-analysis",
+    "crashlytics",
+    "design-system",
+    "app-migration",
+    "app-port"
+  ]
 }

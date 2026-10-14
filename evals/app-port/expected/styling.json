@@ -1,0 +1,83 @@
+{
+  "src": "../../target/App",
+  "files": [
+    {
+      "path": "App/Features/Chat/ChatView.swift",
+      "lines": 10,
+      "matches": 1,
+      "patterns": [
+        "legacy-font"
+      ],
+      "first": 6
+    },
+    {
+      "path": "App/Features/Profile/ProfileHeader.swift",
+      "lines": 18,
+      "matches": 1,
+      "patterns": [
+        "legacy-font"
+      ],
+      "first": 9
+    },
+    {
+      "path": "App/Features/Profile/ProfileView.swift",
+      "lines": 24,
+      "matches": 1,
+      "patterns": [
+        "named-color"
+      ],
+      "first": 21
+    }
+  ],
+  "groups": [
+    {
+      "group": "Features/Profile",
+      "files": 2,
+      "lines": 42,
+      "matches": 2
+    },
+    {
+      "group": "Features/Chat",
+      "files": 1,
+      "lines": 10,
+      "matches": 1
+    }
+  ],
+  "batches": [
+    {
+      "batch": 1,
+      "groups": [
+        "Features/Profile"
+      ],
+      "files": 2,
+      "lines": 42
+    },
+    {
+      "batch": 2,
+      "groups": [
+        "Features/Chat"
+      ],
+      "files": 1,
+      "lines": 10
+    }
+  ],
+  "kept": [
+    {
+      "path": "App/Features/Wallet/WalletView.swift",
+      "lines": 10,
+      "matches": 2,
+      "patterns": [
+        "legacy-color-token",
+        "legacy-font"
+      ],
+      "first": 6,
+      "reason": "wallet screens are restyled last"
+    }
+  ],
+  "totals": {
+    "files": 3,
+    "lines": 52,
+    "matches": 3,
+    "kept_files": 1
+  }
+}

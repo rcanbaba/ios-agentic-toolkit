@@ -1,0 +1,47 @@
+{
+  "legacy_sets_indexed": 7,
+  "never_copied": [
+    "AccentColor.colorset"
+  ],
+  "plan": [
+    {
+      "reference": "_1XBoost",
+      "set": "1x-boost.imageset",
+      "from": "legacy/Assets.xcassets/1x-boost.imageset"
+    },
+    {
+      "reference": "brandPrimary",
+      "set": "brand-primary.colorset",
+      "from": "legacy/Assets.xcassets/brand-primary.colorset"
+    },
+    {
+      "reference": "follow",
+      "set": "follow.imageset",
+      "from": "legacy/Assets.xcassets/follow.imageset"
+    },
+    {
+      "reference": "hero",
+      "set": "heroImage.imageset",
+      "from": "legacy/Assets.xcassets/heroImage.imageset"
+    },
+    {
+      "reference": "tab-home",
+      "set": "tab-home.imageset",
+      "from": "legacy/Assets.xcassets/tab-home.imageset"
+    }
+  ],
+  "applied": true,
+  "copied": [
+    "1x-boost.imageset",
+    "brand-primary.colorset",
+    "follow.imageset",
+    "heroImage.imageset",
+    "tab-home.imageset"
+  ],
+  "already_in_target": [
+    "chat-send.imageset"
+  ],
+  "not_found": [
+    "missingArt"
+  ]
+}

@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "ios-agentic-toolkit",
-      "description": "Supervised agentic iOS workflows: crash investigation and fixing, design systems, and legacy app migration.",
+      "description": "Supervised agentic iOS workflows: crash investigation and fixing, design systems, legacy app migration and porting.",
       "source": "./",
       "category": "development"
     }
