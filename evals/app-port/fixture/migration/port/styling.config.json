@@ -1,0 +1,11 @@
+{
+  "src": "../../target/App",
+  "group_depth": 2,
+  "exclude": ["App/DesignSystem/*"],
+  "patterns": {
+    "legacy-font": "\\.font\\(\\.Brand\\.",
+    "named-color": "\\bColor\\(\"",
+    "legacy-color-token": "\\bBrand(Color|Fill|Gradient)\\."
+  },
+  "keep": [{"path": "App/Features/Wallet/*", "reason": "wallet screens are restyled last"}]
+}
