@@ -21,7 +21,7 @@ mkdir -p "$OUT"
 run() {  # run <expected exit> <report> <script> <args...>
     local expected=$1 report=$2 script=$3 code=0
     shift 3
-    python3 "$S/$script" "$@" --out "$OUT/$report" 2>/dev/null || code=$?
+    python3 "$S/$script" "$@" --out "$OUT/$report" >/dev/null 2>&1 || code=$?
     if [[ $code -ne $expected ]]; then
         echo "FAIL: $script exited $code, expected $expected" >&2
         exit 1
@@ -35,6 +35,7 @@ assets=(--legacy-catalog legacy/Assets.xcassets --target-src target --into targe
 run 1 symbols.json port_missing_symbols.py "${symbols[@]}" --apply
 run 1 assets.json port_assets.py "${assets[@]}" --apply
 run 1 styling.json find_legacy_styling.py migration/port/styling.config.json --batches 2
+run 1 parity.json parity_check.py parity/parity.config.json
 (cd target && find . -type f | LC_ALL=C sort) > "$OUT/target-files.txt"
 
 if [[ ${1:-} == "--update" ]]; then

@@ -1,6 +1,6 @@
 {
   "name": "ios-agentic-toolkit",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Supervised, evidence-first agentic workflows for iOS engineering: crash investigation and approval-gated fixing, design systems from references to generated SwiftUI, verified feature inventories and flow specs for migrating legacy apps, and build-error-driven code ports with parallel design-system restyling, plus VNCBar, a menu bar app for one-click logins to remote Macs.",
   "author": {
     "name": "rcanbaba",
