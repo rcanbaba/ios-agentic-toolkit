@@ -1,7 +1,8 @@
 import Foundation
 
 /// `VNCBar --check-leak <server name>`: searches the places where Screen Sharing and Finder keep
-/// recent connections for that server's password (plain, percent-encoded, UTF-16) and prints only
+/// recent connections (including "Screen Sharing Hosts", which stores the opening URL) for that
+/// server's password (plain, percent-encoded, UTF-16) and prints only
 /// the paths of files that contain it. The password itself is never printed.
 /// Exit code 0 = not found, 1 = found, 2 = usage error.
 @MainActor

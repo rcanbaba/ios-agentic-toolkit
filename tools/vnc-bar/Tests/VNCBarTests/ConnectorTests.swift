@@ -3,22 +3,19 @@ import Testing
 @testable import VNCBar
 
 struct ConnectorTests {
-    let server = Server(name: "Build", host: "203.0.113.10", port: 15944, username: "alex")
-
-    @Test func encodesEveryReservedCharacter() {
-        let url = Connector.url(for: server, password: "p@ss:w/rd ı#%")
-        #expect(url?.absoluteString == "vnc://alex:p%40ss%3Aw%2Frd%20%C4%B1%23%25@203.0.113.10:15944")
+    @Test func urlCarriesUserButNeverPassword() {
+        let server = Server(name: "Build", host: "203.0.113.10", port: 15944, username: "alex")
+        #expect(Connector.url(for: server)?.absoluteString == "vnc://alex@203.0.113.10:15944")
     }
 
-    @Test func roundTripsThroughURLComponents() throws {
-        let password = "ğüş!@#$%^&*()+=:;/?"
-        let url = try #require(Connector.url(for: server, password: password))
-        let parts = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false))
-        #expect(parts.user == "alex" && parts.password == password && parts.port == 15944)
+    @Test func encodesReservedCharactersInUserName() throws {
+        let server = Server(name: "Build", host: "203.0.113.10", port: 5900, username: "a@b:c/ı")
+        let url = try #require(Connector.url(for: server))
+        #expect(url.absoluteString == "vnc://a%40b%3Ac%2F%C4%B1@203.0.113.10:5900")
+        #expect(URLComponents(url: url, resolvingAgainstBaseURL: false)?.user == "a@b:c/ı")
     }
 
-    @Test func noPasswordLeavesItOut() {
-        #expect(Connector.url(for: server, password: nil)?.absoluteString == "vnc://alex@203.0.113.10:15944")
-        #expect(Connector.url(for: server, password: "")?.absoluteString == "vnc://alex@203.0.113.10:15944")
+    @Test func encodeKeepsOnlyUnreservedCharacters() {
+        #expect(Connector.encode("p@ss:w/rd ı#%-._~") == "p%40ss%3Aw%2Frd%20%C4%B1%23%25-._~")
     }
 }

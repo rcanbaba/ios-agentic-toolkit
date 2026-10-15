@@ -12,11 +12,11 @@ enum Connector {
         s.addingPercentEncoding(withAllowedCharacters: unreserved) ?? s
     }
 
-    /// `vnc://user:password@host:port`, or without the password when there is none.
-    static func url(for server: Server, password: String?) -> URL? {
-        var credentials = encode(server.username)
-        if let password, !password.isEmpty { credentials += ":" + encode(password) }
-        return URL(string: "vnc://\(credentials)@\(server.host):\(server.port)")
+    /// `vnc://user@host:port`. Never with the password: Screen Sharing writes the URL it was opened
+    /// with, password included, in plaintext to its "Screen Sharing Hosts" plists (verified on
+    /// macOS 26). The password is typed into the authentication dialog instead.
+    static func url(for server: Server) -> URL? {
+        URL(string: "vnc://\(encode(server.username))@\(server.host):\(server.port)")
     }
 
     struct Failure: LocalizedError {
@@ -27,7 +27,7 @@ enum Connector {
     /// Opens the URL with Screen Sharing itself, so another app registered for `vnc://` is never used.
     @MainActor
     static func connect(_ server: Server) async throws {
-        guard let url = url(for: server, password: Keychain.password(for: server.id)) else {
+        guard let url = url(for: server) else {
             throw Failure(message: "Could not build a vnc:// address for \(server.name).")
         }
         guard let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: screenSharingID) else {
