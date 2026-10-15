@@ -50,7 +50,9 @@ Workflow-specific design, usage, decisions and lessons go in
   contracts) → `scripts/render_specimen.sh` (PNG renders on a simulator).
 - `scripts/sample_colors.swift` measures colors from screenshots.
 - Changing the schema means updating the validator, the generator, the
-  skill and the `paper-lantern` example together, then regenerating.
+  skill and the `paper-lantern` example together, then regenerating and
+  re-rendering it. New fields are optional and bump `schema_version`
+  (1.0 → 1.1), so existing contracts stay valid.
 - Both validators share `scripts/schema_lite.py`.
 
 ## Migration workflow: how the parts connect

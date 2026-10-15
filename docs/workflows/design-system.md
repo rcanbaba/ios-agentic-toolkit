@@ -103,9 +103,10 @@ holds more than tokens, because tokens alone still produce generic UI:
 | `references` | Which traits were taken from which reference |
 | `signature` | The few traits that make the system recognizable |
 | `colors` | Semantic roles, light/dark values, origin (sampled/derived/chosen) |
-| `typography` | Families with licenses; styles bound to Dynamic Type text styles |
+| `typography` | Families with licenses; styles bound to Dynamic Type text styles, with the `uses` each style is allowed in (1.1) |
 | `spacing`, `radii`, `shadows`, `borders` | Token scales |
-| `components` | Recipes expressed only in tokens |
+| `gradients`, `overlays` | Gradients and translucent layers (dimming) composed from color tokens (1.1) |
+| `components` | Recipes expressed only in tokens; optional `pressed` state (1.1) |
 | `guidelines` | Do / don't rules for implementation |
 | `hig_deviations` | Deliberate departures from Apple defaults, with reasons |
 | `estimates` | Every value estimated by eye rather than measured |
@@ -185,7 +186,9 @@ returns the contract's exact hex values in both modes.
 | While fixing the above, a pixel comparison showed that the old large-type render had compressed and truncated text and transparent areas | Content is rendered at its natural height (`fixedSize`), never a forced one; verified pixel-identical for light/dark, corrected for large type |
 
 | The specimen shows tokens, but the human judged the system from sample screens. The agent rendered them with a copy of the specimen renderer | Not built yet. Candidate: a `showcase` step that renders agent-written sample screens with the same renderer |
-| The contract has no gradients or component variants, so the agent added them in a hand-written extras file next to the generated code | Not built yet. Candidate: gradient tokens and variants in the schema, once a second run needs them too |
+| The contract has no gradients or component variants, so the agent added them in a hand-written extras file next to the generated code | Contract 1.1: `gradients` and `overlays` are tokens; `DSComponent.with(...)` is generated. Needed again by the port that followed, which used them throughout |
+| In the port that followed, a pressable button style and the popup dimming were written by hand, and each screen chose its own press feedback | Components declare a `pressed` state; `DSPressableButtonStyle` is generated |
+| The screenshot review of the port found display-size numbers (22pt+) in list rows and a list row overflowing the screen width. Nothing in the contract said which style belongs in a row | Text styles declare `uses`; the validator warns on row styles above 20pt; the specimen renders dense rows with a long name and a large number, in light, dark and large type |
 
 Lesson for the workflow itself: a renderer that distorts layout gives the
 agent wrong visual feedback. Renderer changes are verified by pixel

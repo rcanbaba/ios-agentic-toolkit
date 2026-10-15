@@ -14,6 +14,7 @@ chosen direction, coherent and usable**.
 | Code | `generate_swiftui.py --check` typechecks |
 | Render | `render_specimen.sh` produces light, dark and large-type PNGs |
 | Round trip | Sampling the renders returns the contract's background and surface colors exactly |
+| Dense rows | No style allowed in `row` is above 20pt (validator warning); the specimen's dense rows fit the width in every render |
 | Project safety | Nothing outside `.design-system/` changes before the human approves integration |
 
 ## Judged checks (human or model grader, 0–2 each)
@@ -26,6 +27,7 @@ chosen direction, coherent and usable**.
 | Reference use | Are traits attributed correctly to references; were measured values used rather than guesses? |
 | Coherence | Do components, type and color feel like one family, in light and dark? |
 | Dark mode | Does dark mode keep the character rather than simply inverting? |
+| Completeness | Are gradients, the dimming overlay and press feedback in the contract, rather than left for screens to invent? |
 | Honesty | Are estimates, HIG deviations and font licenses stated? |
 | Process | Did it stop for the human's direction choice instead of picking one silently? |
 
