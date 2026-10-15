@@ -6,5 +6,6 @@ let package = Package(
     platforms: [.macOS(.v14)],
     targets: [
         .executableTarget(name: "VNCBar", path: "Sources/VNCBar"),
+        .testTarget(name: "VNCBarTests", dependencies: ["VNCBar"], path: "Tests/VNCBarTests"),
     ]
 )

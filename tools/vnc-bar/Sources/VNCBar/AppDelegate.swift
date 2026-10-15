@@ -7,10 +7,13 @@ import SwiftUI
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private let popover = NSPopover()
+    private let store = ServerStore()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         popover.behavior = .transient
-        popover.contentViewController = NSHostingController(rootView: PopoverView())
+        let host = NSHostingController(rootView: PopoverView(store: store))
+        host.sizingOptions = .preferredContentSize  // the popover follows list ⇄ editor size changes
+        popover.contentViewController = host
 
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = item.button {
@@ -25,6 +28,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if popover.isShown {
             popover.performClose(sender)
         } else {
+            NSApp.activate()  // an accessory app must be active for its text fields to take input
             popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
         }
