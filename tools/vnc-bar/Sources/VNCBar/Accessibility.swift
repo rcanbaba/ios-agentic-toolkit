@@ -8,8 +8,12 @@ import Observation
 @MainActor
 @Observable
 final class Accessibility {
-    private(set) var isTrusted = AXIsProcessTrusted()
+    private(set) var isTrusted: Bool
     private var poll: Timer?
+
+    init(isTrusted: Bool = AXIsProcessTrusted()) {
+        self.isTrusted = isTrusted
+    }
 
     func refresh() {
         isTrusted = AXIsProcessTrusted()

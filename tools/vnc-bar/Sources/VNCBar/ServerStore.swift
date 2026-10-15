@@ -21,13 +21,14 @@ final class ServerStore {
             .appendingPathComponent("VNCBar/servers.json")
     }
 
-    init(fileURL: URL = ServerStore.defaultURL) {
+    /// `passwordIDs` replaces the Keychain lookup (synthetic screenshots).
+    init(fileURL: URL = ServerStore.defaultURL, passwordIDs: Set<UUID>? = nil) {
         self.fileURL = fileURL
-        load()
+        load(passwordIDs: passwordIDs)
     }
 
-    func load() {
-        withPassword = Keychain.idsWithPassword()
+    func load(passwordIDs: Set<UUID>? = nil) {
+        withPassword = passwordIDs ?? Keychain.idsWithPassword()
         guard FileManager.default.fileExists(atPath: fileURL.path) else { return }
         do {
             servers = try JSONDecoder().decode(File.self, from: Data(contentsOf: fileURL)).servers

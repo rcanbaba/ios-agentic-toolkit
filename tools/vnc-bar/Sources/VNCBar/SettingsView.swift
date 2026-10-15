@@ -14,18 +14,21 @@ struct SettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Settings").font(.headline)
-            Form {
+            VStack(alignment: .leading, spacing: 10) {
                 Toggle("Type the password after connecting", isOn: $autoType)
                 Toggle("Choose Standard in the connection-type dialog", isOn: $autoStandard)
+                Toggle("Launch at login", isOn: $launchAtLogin)
+                    .onChange(of: launchAtLogin) { _, on in setLaunchAtLogin(on) }
+                Divider()
                 Stepper(value: $loginDelay, in: 0...30, step: 0.5) {
                     Text("Login screen delay: \(loginDelay, format: .number.precision(.fractionLength(1))) s")
                 }
                 Stepper(value: $keyDelay, in: 20...500, step: 10) {
                     Text("Delay between keys: \(keyDelay) ms")
                 }
-                Toggle("Launch at login", isOn: $launchAtLogin)
-                    .onChange(of: launchAtLogin) { _, on in setLaunchAtLogin(on) }
             }
+            .toggleStyle(.checkbox)
+            Divider()
             Text("Auto-type assumes the remote Mac shows its login screen when the session opens. "
                  + "⌃⌥P types the password of the focused Screen Sharing window's server.")
                 .font(.caption).foregroundStyle(.secondary)
