@@ -1,6 +1,6 @@
 # Workflow: App Port (Code & UI)
 
-**Status:** implemented · **Skills:** [`port-code`](../../skills/port-code/SKILL.md), [`ui-port`](../../skills/ui-port/SKILL.md) · **Scripts:** [`port_missing_symbols.py`](../../scripts/port_missing_symbols.py), [`port_assets.py`](../../scripts/port_assets.py), [`find_legacy_styling.py`](../../scripts/find_legacy_styling.py) · **Eval:** [`evals/app-port`](../../evals/app-port/README.md)
+**Status:** implemented · **Skills:** [`port-code`](../../skills/port-code/SKILL.md), [`ui-port`](../../skills/ui-port/SKILL.md) · **Scripts:** [`port_missing_symbols.py`](../../scripts/port_missing_symbols.py), [`port_assets.py`](../../scripts/port_assets.py), [`find_legacy_styling.py`](../../scripts/find_legacy_styling.py), [`parity_check.py`](../../scripts/parity_check.py) · **Eval:** [`evals/app-port`](../../evals/app-port/README.md)
 
 Moves a legacy iOS app into a new app after [App Migration](app-migration.md)
 has inventoried it, specified its critical flows and prepared the core layer.
@@ -46,6 +46,10 @@ flowchart TD
     RL --> H3{"Human screenshot review"}
     H3 -- fixes --> I
     H3 -- accepted --> L["Ledger · art redraw as one set"]
+    L --> PC{{"parity_check.py<br/>every inventoried feature:<br/>files · symbols · callers<br/>legacy baseline · allow list"}}
+    PC -- gaps --> R2["Read each gap in legacy code<br/>port it, or allow with a reason"]
+    R2 --> PC
+    PC -- exit 0 --> DONE["Port complete"]
 ```
 
 ## Stages
@@ -61,6 +65,7 @@ flowchart TD
 | 7 | Parallel restyle agents under one rules file | restyle agents | restyled views, agent reports |
 | 8 | Integrate: build, legacy-styling gate, review list | integrator + deterministic | green build, empty gate, review list |
 | 9 | Screenshot review and fixes; product art redrawn as a set | **human** + integrator | accepted screens |
+| 10 | Parity gate: every inventoried feature's files and symbols present and still called; deliberate gaps allowed with reasons | deterministic + orchestrator, **human** reads the allow list | parity report, exit 0 |
 
 ## Deterministic vs agentic responsibilities
 
@@ -75,6 +80,8 @@ flowchart TD
 | Restyling views | **Agentic** (parallel agents, styling only) |
 | Design choices made for the user; legacy quirks | Agents list them; the **human** decides |
 | Accepting the look | **Human**, from the simulator |
+| Whether every inventoried feature survived (files, API methods, realtime types, routes, keys; declared but no longer called) | **Deterministic** (`parity_check.py`, legacy app as baseline) |
+| Whether a gap is deliberate | **Agentic** reading of the legacy code, recorded in `allow` with a reason the **human** sees |
 
 ## Usage
 
@@ -103,6 +110,7 @@ python3 scripts/port_missing_symbols.py --legacy <legacy> --target <new src> \
 python3 scripts/port_assets.py --legacy-catalog <legacy>/Assets.xcassets --target-src <new src> \
     --into <new src>/Resources/Assets.xcassets/Legacy --errors build-errors.txt --scan [--apply]
 python3 scripts/find_legacy_styling.py .migration/port/styling.config.json [--batches 6]
+python3 scripts/parity_check.py .migration/parity/parity.config.json --md .migration/parity/report.md
 evals/app-port/run.sh
 ```
 
@@ -129,6 +137,13 @@ evals/app-port/run.sh
   reliably than descriptions; the same pieces are reused everywhere.
 - **The human review is a stage.** Every defect after integration in the
   real run came from the user's screenshots, not from the build.
+- **Parity is checked against the inventory, not remembered.** A green build
+  says only that what was copied compiles. The gate checks every feature's
+  files and symbols, and flags symbols that are still declared but no longer
+  called: a restyle that drops a call still builds. The legacy app is the
+  baseline, so code that was already dead there is reported as inherited
+  rather than drowning the real gaps. Presence is not behavior; flow-spec
+  acceptance tests and runtime checks cover the rest.
 - **Product art as one set.** Badges and frames redrawn by one owner after
   the restyle stay consistent; split across agents they drift.
 
@@ -152,3 +167,6 @@ design system. Private details stay out of this repository.
 | A display-size numeral overflowed a four-column stat row with abbreviated values | Port rules: title/headline sizes in dense rows; the design-system specimen should include such a row |
 | Agents noticed legacy bugs (an inverted icon, a value in the wrong row) | Listed in the review list and fixed only after the user decided |
 | Tier and level art needed a consistent redraw | Kept during restyle; redrawn afterwards as one set by one owner |
+| "Is every feature still there?" had no mechanical answer after ~400 inventoried features were ported and restyled | `parity_check.py` as the last gate; on the real port it ran in seconds, every remaining gap was either legacy dead code (inherited) or deferred work |
+| Inventory entries sometimes hold notes ("Feature/X (other area)") instead of paths | Only path-like entries are checked; notes are listed as unchecked |
+| A green parity gate still let a wire-format defect through (a renamed response key broke one list at runtime) | Stated in the skill: parity checks presence; runtime defects need acceptance tests and a run on the simulator |

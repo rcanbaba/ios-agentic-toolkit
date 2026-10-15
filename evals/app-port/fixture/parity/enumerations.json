@@ -1,0 +1,8 @@
+{
+  "api_client_methods": {"source": "Networking/APIClient.swift", "cases": [
+    {"method": "fetchProfile"}, {"method": "sendGift"}, {"method": "buyTokens"}, {"method": "legacyPing"}]},
+  "app_routes": {"source": "Navigation/Route.swift", "cases": [
+    {"case": "profile"}, {"case": "gifts"}, {"case": "wallet"}]},
+  "localization_keys": {"source": "all *.swift", "cases": [
+    {"key": "profile_title"}, {"key": "gift_sent"}, {"key": "wallet_title"}]}
+}

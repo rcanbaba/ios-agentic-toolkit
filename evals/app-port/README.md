@@ -26,3 +26,8 @@ What the fixture exercises, each a defect or trap seen in a real port:
 | `missingArt` in the log, no such set | `not_found`, exit code 1 |
 | Legacy styling in Profile and Chat, Wallet kept on purpose, design-system folder excluded; the config lives in `migration/port/` (as `.migration/port/` in a real project), outside the scanned sources | two groups, two balanced batches, Wallet reported as kept |
 | Second run on the ported copy | nothing new planned or copied |
+| Parity: a profile feature ported and restyled with its calls kept | `ported` |
+| Parity: a gift sheet restyled without its send call, its combo view and its toast key, while the API method is still declared | `partial`: the method as `declared_unused`, the file and the key missing |
+| Parity: an API method and a route never used in the legacy app either | `inherited`, not a gap |
+| Parity: a deferred wallet and the symbols only it used | `allowed` with the reasons |
+| Parity: an inventory note instead of a path ("Scenes/Gifts (shared with chat)") | `unchecked_entries`, not a missing file |

@@ -112,3 +112,6 @@ owner**, so the set stays consistent; agents only note where it appears.
 Record in the ledger: batches done, kept areas and why, shared components
 added, art kept for the redraw, quirks found and their decisions. In chat:
 the gate result, the build result, the review list, and what is still legacy.
+When the last batch is accepted, re-run the `port-code` parity gate
+(`scripts/parity_check.py`): a restyle can drop a call while the file still
+builds, and the gate reports it as `declared_unused`.
