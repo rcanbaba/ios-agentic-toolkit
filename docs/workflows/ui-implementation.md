@@ -55,7 +55,7 @@ flowchart TD
 | Choosing the template screen and following its patterns | **Agentic** |
 | Mapping elements to tokens and components; the states to cover | **Agentic**, approved by the human |
 | Whether a missing token belongs in the contract | Agent proposes, **human** decides |
-| Whether the result looks right | Screenshots read by the agent and the human |
+| Whether the result looks right | Screenshots read by the agent; then [Visual Review](visual-review.md) and the human |
 
 ## Usage
 

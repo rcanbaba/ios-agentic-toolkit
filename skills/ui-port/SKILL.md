@@ -101,7 +101,9 @@ The user reviews on the simulator and sends screenshots. Fix what they point
 out, then search for the same pattern elsewhere before rebuilding: a defect
 seen on one screen usually exists in its siblings (text colored for a dark
 surface rendered on a light sheet; a display-size number in a dense row).
-Repeat until the user accepts the batch.
+Repeat until the user accepts the batch. The `visual-review` skill can do a
+first pass before the user's own review: it captures the batch's screens and
+returns a validated list grouped by pattern.
 
 Product art the legacy app drew as bitmaps (tier badges, level badges, frames,
 rank medals) is kept during restyle and redrawn afterwards **as one set by one
