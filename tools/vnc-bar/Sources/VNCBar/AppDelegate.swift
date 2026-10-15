@@ -31,6 +31,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = item
     }
 
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls {
+            guard let request = AppURL(url) else {
+                NSSound.beep()
+                continue
+            }
+            guard let server = store.server(named: request.serverName) else {
+                run("No server named \(request.serverName)") { throw StoreError(message: "Check the name in VNCBar.") }
+                continue
+            }
+            switch request.action {
+            case .connect:
+                connect(server)
+            case .type:
+                popover.performClose(nil)
+                run("Could not type the password for \(server.name)") {
+                    try await PasswordTyping.typePassword(for: server, fallbackToFocusedWindow: false)
+                }
+            }
+        }
+    }
+
     private func connect(_ server: Server) {
         popover.performClose(nil)
         run("Could not connect to \(server.name)") { [store] in try await ConnectFlow.connect(server, store: store) }

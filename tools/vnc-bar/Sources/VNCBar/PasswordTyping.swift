@@ -8,7 +8,9 @@ enum PasswordTyping {
         var errorDescription: String? { message }
     }
 
-    static func typePassword(for server: Server) async throws {
+    /// `fallbackToFocusedWindow` is false for requests from outside the app (the URL scheme): any
+    /// app or web page can open a `vncbar://` URL, so it types only into the server's own window.
+    static func typePassword(for server: Server, fallbackToFocusedWindow: Bool = true) async throws {
         guard AXIsProcessTrusted() else {
             throw Failure(message: "VNCBar needs the Accessibility permission to type. Open VNCBar and press Grant.")
         }
@@ -18,9 +20,9 @@ enum PasswordTyping {
         guard let app = ScreenSharing.app else {
             throw Failure(message: "Screen Sharing is not running. Connect first.")
         }
-        let window = ScreenSharing.window(for: server, in: ScreenSharing.windows(of: app))
-            ?? ScreenSharing.mainWindow(of: app)
-        guard let window else { throw Failure(message: "Screen Sharing has no open window.") }
+        var window = ScreenSharing.window(for: server, in: ScreenSharing.windows(of: app))
+        if window == nil, fallbackToFocusedWindow { window = ScreenSharing.mainWindow(of: app) }
+        guard let window else { throw Failure(message: "No Screen Sharing window belongs to \(server.name).") }
 
         ScreenSharing.raise(window, of: app)
         for _ in 0..<20 where !ScreenSharing.isFrontmost(app) {
