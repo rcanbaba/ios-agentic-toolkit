@@ -2,6 +2,7 @@ import Testing
 @testable import VNCBar
 
 /// Holds for every Latin layout (US, Turkish Q, German, ...), so it does not depend on the machine.
+@MainActor
 struct KeyMapTests {
     @Test func lettersDigitsAndShift() throws {
         let map = try #require(KeyMap())

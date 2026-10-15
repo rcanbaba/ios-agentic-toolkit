@@ -18,6 +18,8 @@ struct KeyMap {
     /// Key codes that never produce text we want (keypad, so digits come from the main row).
     private static let skipped: Set<CGKeyCode> = Set(65...92)
 
+    /// TIS asserts that it runs on the main thread.
+    @MainActor
     init?() {
         guard let source = TISCopyCurrentKeyboardLayoutInputSource()?.takeRetainedValue()
                 ?? TISCopyCurrentASCIICapableKeyboardLayoutInputSource()?.takeRetainedValue(),
