@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/rcanbaba/ios-agentic-toolkit/schemas/visual-review.schema.json",
+  "title": "Visual Review",
+  "description": "Output contract of the visual-review skill: findings on screenshots of implemented screens, each tied to a rule and to evidence, for the human to triage and the ui-implement skill to fix. Paths are relative to the review file's directory unless --src is given for code evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "app", "contract", "screens", "findings", "not_checked"],
+  "properties": {
+    "schema_version": { "type": "string", "enum": ["1.0"] },
+    "app": { "type": "string", "minLength": 1 },
+    "contract": { "type": "string", "minLength": 1, "description": "Path to the design-system contract the screens were reviewed against." },
+    "screens": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "screenshots"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+          "name": { "type": "string", "minLength": 1 },
+          "accepted_before": { "type": "boolean", "description": "The user already accepted this screen; only blocker and major findings are reported for it." },
+          "screenshots": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["file", "variant"],
+              "properties": {
+                "file": { "type": "string", "minLength": 1 },
+                "variant": { "type": "string", "enum": ["light", "dark", "large-type", "state", "other"] },
+                "note": { "type": "string" }
+              }
+            }
+          },
+          "files": { "type": "array", "items": { "type": "string" }, "description": "Source files that draw the screen." }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "screen", "rule", "severity", "observation", "evidence", "suggested_fix", "confidence"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^V[0-9]+$" },
+          "screen": { "type": "string", "description": "Screen id." },
+          "rule": { "type": "string", "description": "A rule id from ux-rules.md, DS-GUIDE, or LINT:<check_ds_usage rule>." },
+          "guideline": { "type": "string", "description": "The contract guideline quoted verbatim; required when rule is DS-GUIDE." },
+          "severity": { "type": "string", "enum": ["blocker", "major", "minor"] },
+          "observation": { "type": "string", "minLength": 1, "description": "What is visible and where on the screenshot, without the cause." },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "ref"],
+              "properties": {
+                "kind": { "type": "string", "enum": ["screenshot", "code", "lint", "palette"] },
+                "ref": { "type": "string", "minLength": 1, "description": "screenshot: a screenshot file of this screen; code: path:line; lint/palette: the report file." }
+              }
+            }
+          },
+          "suggested_fix": { "type": "string", "minLength": 1, "description": "In design-system terms: the token, style or component to use." },
+          "confidence": { "type": "string", "enum": ["seen", "inferred"], "description": "seen: visible in the screenshot; inferred: concluded from code or a report, not visible." },
+          "siblings": { "type": "array", "items": { "type": "string" }, "description": "Other files or screens where the same pattern probably exists." },
+          "decision": { "type": "string", "enum": ["open", "fix", "skip"], "description": "The human's triage; open until decided." }
+        }
+      }
+    },
+    "not_checked": { "type": "array", "items": { "type": "string" }, "description": "States, variants or screens that were not reviewed, and why." }
+  }
+}
