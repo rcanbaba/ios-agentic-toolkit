@@ -16,6 +16,8 @@ enum DS {
         static let inkMuted = Color(dsLight: 0x5E564BFF, dark: 0xB5AC9EFF)
         /// accent · chosen
         static let vermilion = Color(dsLight: 0xC2410CFF, dark: 0xF26B3AFF)
+        /// other · derived
+        static let vermilionPressed = Color(dsLight: 0x9A3412FF, dark: 0xD9541FFF)
         /// text_on_accent · chosen
         static let onVermilion = Color(dsLight: 0xFFFFFFFF, dark: 0x1A0E08FF)
         /// border · sampled (R3)
@@ -53,36 +55,64 @@ enum DS {
         static let hairline = DSBorder(width: 1, color: Colors.hairline)
     }
 
+    enum Gradients {
+        /// Header wash; content below it sits on paper
+        static let paperFade = LinearGradient(colors: [Colors.card, Colors.paper], startPoint: .top, endPoint: .bottom)
+    }
+
+    enum Overlays {
+        /// Dimming behind sheets and popovers; ink, never pure black
+        static let scrim = Colors.ink.opacity(0.4)
+    }
+
     enum Components {
         /// The only filled, accent-colored control on a screen.
         static let primaryButton = DSComponent(
             background: Colors.vermilion, foreground: Colors.onVermilion,
             textStyle: .label, radius: Radius.crisp, radiusStyle: .continuous,
             paddingH: Spacing.lg, paddingV: Spacing.sm,
-            border: nil, shadow: nil, minHeight: 48)
+            border: nil, shadow: nil, minHeight: 48,
+            pressed: DSPressed(offsetY: 0, dropShadow: false, background: Colors.vermilionPressed))
         /// Outlined; never accent-colored.
         static let secondaryButton = DSComponent(
             background: Colors.card, foreground: Colors.ink,
             textStyle: .label, radius: Radius.crisp, radiusStyle: .continuous,
             paddingH: Spacing.lg, paddingV: Spacing.sm,
-            border: Borders.hairline, shadow: nil, minHeight: 48)
+            border: Borders.hairline, shadow: nil, minHeight: 48,
+            pressed: nil)
         /// Metadata chips; not tappable.
         static let tag = DSComponent(
             background: Colors.paper, foreground: Colors.inkMuted,
             textStyle: .caption, radius: Radius.pill, radiusStyle: .circular,
             paddingH: Spacing.sm, paddingV: Spacing.xxs,
-            border: Borders.hairline, shadow: nil, minHeight: 0)
+            border: Borders.hairline, shadow: nil, minHeight: 0,
+            pressed: nil)
         /// Content container; separated by hairline, not shadow.
         static let card = DSComponent(
             background: Colors.card, foreground: Colors.ink,
             textStyle: .body, radius: Radius.crisp, radiusStyle: .continuous,
             paddingH: Spacing.md, paddingV: Spacing.md,
-            border: Borders.hairline, shadow: nil, minHeight: 0)
+            border: Borders.hairline, shadow: nil, minHeight: 0,
+            pressed: nil)
     }
 }
 
+/// Where a text style may appear (contract `uses`).
+enum DSTextUse: String {
+    case hero, section, row, control, caption
+}
+
 enum DSTextStyle: String, CaseIterable {
-    case display, headline, body, label, caption
+    /// 36pt semibold · uses: hero
+    case display
+    /// 22pt semibold · uses: section
+    case headline
+    /// 17pt regular · uses: row
+    case body
+    /// 15pt semibold · uses: control, row
+    case label
+    /// 12pt medium · uses: caption, row
+    case caption
 
     var size: CGFloat {
         switch self {
@@ -134,6 +164,17 @@ enum DSTextStyle: String, CaseIterable {
         }
     }
 
+    /// Empty: the contract does not restrict where the style appears.
+    var uses: [DSTextUse] {
+        switch self {
+        case .display: [.hero]
+        case .headline: [.section]
+        case .body: [.row]
+        case .label: [.control, .row]
+        case .caption: [.caption, .row]
+        }
+    }
+
     func font(size: CGFloat) -> Font {
         switch self {
         case .display: .system(size: size, weight: .semibold, design: .serif)
@@ -158,6 +199,12 @@ struct DSBorder {
     let color: Color
 }
 
+struct DSPressed {
+    let offsetY: CGFloat
+    let dropShadow: Bool
+    let background: Color?
+}
+
 struct DSComponent {
     let background: Color
     let foreground: Color
@@ -169,6 +216,44 @@ struct DSComponent {
     let border: DSBorder?
     let shadow: DSShadow?
     let minHeight: CGFloat
+    let pressed: DSPressed?
+
+    /// A one-off variant with some fields replaced; every value should still be a DS token.
+    func with(
+        background: Color? = nil, foreground: Color? = nil, textStyle: DSTextStyle? = nil,
+        radius: CGFloat? = nil, paddingH: CGFloat? = nil, paddingV: CGFloat? = nil,
+        minHeight: CGFloat? = nil
+    ) -> DSComponent {
+        DSComponent(
+            background: background ?? self.background, foreground: foreground ?? self.foreground,
+            textStyle: textStyle ?? self.textStyle, radius: radius ?? self.radius, radiusStyle: radiusStyle,
+            paddingH: paddingH ?? self.paddingH, paddingV: paddingV ?? self.paddingV,
+            border: border, shadow: shadow, minHeight: minHeight ?? self.minHeight, pressed: pressed)
+    }
+
+    /// How the component looks while pressed (itself when it has no pressed state).
+    var pressedAppearance: DSComponent {
+        guard let pressed else { return self }
+        return DSComponent(
+            background: pressed.background ?? background, foreground: foreground, textStyle: textStyle,
+            radius: radius, radiusStyle: radiusStyle, paddingH: paddingH, paddingV: paddingV,
+            border: border, shadow: pressed.dropShadow ? nil : shadow, minHeight: minHeight, pressed: pressed)
+    }
+}
+
+/// Button style for a component recipe, with the contract's press feedback.
+struct DSPressableButtonStyle: ButtonStyle {
+    let component: DSComponent
+    var fillsWidth = true
+
+    func makeBody(configuration: Configuration) -> some View {
+        let isPressed = configuration.isPressed && component.pressed != nil
+        configuration.label
+            .frame(maxWidth: fillsWidth ? .infinity : nil)
+            .dsComponent(isPressed ? component.pressedAppearance : component)
+            .offset(y: isPressed ? component.pressed?.offsetY ?? 0 : 0)
+            .animation(.easeOut(duration: 0.08), value: configuration.isPressed)
+    }
 }
 
 private struct DSTextStyleModifier: ViewModifier {

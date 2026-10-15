@@ -86,8 +86,16 @@ Write `.design-system/<name>/design-system.json`:
   serif, monospaced) or freely licensed fonts. A font seen in a screenshot
   may be commercial: propose a licensed alternative with similar character
   and record the license. Bundled fonts need PostScript names.
+- Typography `uses`: say where each style may appear (`hero`, `section`,
+  `row`, `control`, `caption`). Keep row styles at or below ~20pt: display
+  sizes in list rows were the most common defect in a real review. At least
+  one style must be allowed in rows.
 - Components: express each recipe only in tokens (primary/secondary button,
-  card, tag, and whatever the app needs).
+  card, tag, and whatever the app needs). Give tappable recipes a `pressed`
+  state (offset, shadow drop, pressed background) instead of leaving press
+  feedback to each screen.
+- `gradients` and `overlays` (the dimming behind popups and sheets): compose
+  them from color tokens here, so screens never build their own.
 - `hig_deviations`: every deliberate departure from Apple defaults, with
   the reason. Free to change: color, type, shape, depth. Not negotiable:
   Dynamic Type support, 44pt tap targets, readable contrast.
@@ -114,6 +122,8 @@ chosen direction and the references before showing the user:
 - Is the hierarchy clear? Do the components feel like one family?
 - Does dark mode keep the character, or is it just inverted?
 - Does large type still lay out acceptably?
+- Does the dense-rows sample fit: a long name truncates, the number stays on
+  one line, nothing overflows the width, in the large-type render too?
 
 Revise the contract and regenerate when the critique finds problems (at most
 three rounds before asking the user). Never edit generated Swift files by
@@ -134,8 +144,16 @@ the target and `UIAppFonts` in Info.plist; list these steps rather than doing
 them silently.
 
 Usage in code: `DS.Colors.<name>`, `DS.Spacing.<name>`, `DS.Shapes.<name>`,
-`.dsFont(.<style>)`, `.dsComponent(DS.Components.<name>)`, and the
+`DS.Gradients.<name>`, `DS.Overlays.<name>`, `.dsFont(.<style>)`,
+`.dsComponent(DS.Components.<name>)`,
+`.buttonStyle(DSPressableButtonStyle(component: DS.Components.<name>))`,
+`DS.Components.<name>.with(...)` for one-off variants, and the
 `DesignSystemSpecimen` view for previews.
+
+When a project already has hand-written gradients, a pressable style or a
+variant helper next to an older generated file, regenerating creates
+duplicates: list them for the user and remove the hand-written copies only
+after they agree.
 
 ## Boundaries
 

@@ -21,6 +21,7 @@ struct DesignSystemSpecimenContent: View {
         ("ink", "text_primary", "#1F1B16 / #F3EDE2", DS.Colors.ink),
         ("inkMuted", "text_secondary", "#5E564B / #B5AC9E", DS.Colors.inkMuted),
         ("vermilion", "accent", "#C2410C / #F26B3A", DS.Colors.vermilion),
+        ("vermilionPressed", "other", "#9A3412 / #D9541F", DS.Colors.vermilionPressed),
         ("onVermilion", "text_on_accent", "#FFFFFF / #1A0E08", DS.Colors.onVermilion),
         ("hairline", "border", "#DDD3C2 / #3A342C", DS.Colors.hairline),
         ("moss", "success", "#3F6212 / #A3C46B", DS.Colors.moss),
@@ -46,6 +47,18 @@ struct DesignSystemSpecimenContent: View {
         ("secondaryButton", DS.Components.secondaryButton),
         ("tag", DS.Components.tag),
         ("card", DS.Components.card)
+    ]
+    private let gradients: [(String, LinearGradient)] = [
+        ("paperFade", DS.Gradients.paperFade)
+    ]
+    private let overlays: [(String, Color)] = [
+        ("scrim", DS.Overlays.scrim)
+    ]
+    // Dense list rows: the longest names and largest numbers a real list shows.
+    private let rows: [(String, String, String)] = [
+        ("Ada", "Level 12", "1,250"),
+        ("Maximilian Alexander-Fitzgerald", "Level 48 · Team Northern Lights", "12,480,950"),
+        ("Zoë Ölçer", "Level 7", "98"),
     ]
 
     var body: some View {
@@ -86,7 +99,7 @@ struct DesignSystemSpecimenContent: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("The quick brown fox jumps over the lazy dog").dsFont(style)
                         Text("Ağaç çiçek ışık öğün şüphe İĞÜŞÖÇ 0123456789").dsFont(style)
-                        Text("\(style.rawValue) · \(Int(style.size))pt · \(style.weightName) · scales with \(String(describing: style.relativeTo))")
+                        Text("\(style.rawValue) · \(Int(style.size))pt · \(style.weightName) · scales with \(String(describing: style.relativeTo))" + (style.uses.isEmpty ? "" : " · uses: " + style.uses.map(\.rawValue).joined(separator: ", ")))
                             .font(.caption.monospaced())
                             .foregroundStyle(DS.Colors.inkMuted)
                     }
@@ -129,10 +142,64 @@ struct DesignSystemSpecimenContent: View {
                 }
             }
 
+            if !gradients.isEmpty {
+                section("Gradients") {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 96))], alignment: .leading, spacing: 16) {
+                        ForEach(gradients, id: \.0) { name, gradient in
+                            VStack(spacing: 6) {
+                                RoundedRectangle(cornerRadius: 12, style: .continuous).fill(gradient).frame(width: 88, height: 64)
+                                Text(name).font(.caption.monospaced())
+                            }
+                        }
+                    }
+                }
+            }
+
+            if !overlays.isEmpty {
+                section("Overlays") {
+                    ForEach(overlays, id: \.0) { name, color in
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Content under the overlay").dsFont(.body)
+                                .frame(maxWidth: .infinity, minHeight: 72)
+                                .background(DS.Colors.card)
+                                .overlay(color)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            Text(name).font(.caption.monospaced())
+                        }
+                    }
+                }
+            }
+
+            section("Dense rows · body / caption") {
+                VStack(spacing: 0) {
+                    ForEach(rows, id: \.0) { name, meta, value in
+                        HStack(spacing: 12) {
+                            Circle().fill(DS.Colors.vermilion).frame(width: 40, height: 40)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(name).dsFont(.body).lineLimit(1)
+                                Text(meta).dsFont(.caption).foregroundStyle(DS.Colors.inkMuted).lineLimit(1)
+                            }
+                            Spacer(minLength: 8)
+                            Text(value).dsFont(.body).monospacedDigit().lineLimit(1)
+                        }
+                        .padding(.vertical, 10)
+                    }
+                }
+                .padding(.horizontal, 12)
+                .background(DS.Colors.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+
             if !components.isEmpty {
                 section("Components") {
                     ForEach(components, id: \.0) { name, component in
-                        Text(name).dsComponent(component)
+                        HStack(spacing: 12) {
+                            Text(name).dsComponent(component)
+                            if component.pressed != nil {
+                                Text("pressed")
+                                    .dsComponent(component.pressedAppearance)
+                                    .offset(y: component.pressed?.offsetY ?? 0)
+                            }
+                        }
                     }
                 }
             }
