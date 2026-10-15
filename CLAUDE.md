@@ -9,7 +9,8 @@ multiple workflows (crash, UI, release, ...). It is used from *other* iOS
 repositories (`/plugin install` or `claude --plugin-dir <this repo>`). This
 repo is where the toolkit is developed. Crash, design-system, app-migration and
 app-port workflows are implemented; the "Planned" rows in the README workflow table are
-intentionally unbuilt.
+intentionally unbuilt. `tools/` holds native helper apps (VNCBar) with thin
+skills that trigger them; their docs go in `docs/tools/<tool>.md`.
 
 README.md stays general (principles, building blocks, workflow catalog).
 Workflow-specific design, usage, decisions and lessons go in
@@ -89,6 +90,18 @@ Workflow-specific design, usage, decisions and lessons go in
   `evals/app-port/expected/` (`evals/app-port/run.sh --update`), and adding a
   fixture case for every defect fixed.
 
+## VNCBar tool: how the parts connect
+
+- `tools/vnc-bar/`: Swift package for a macOS menu bar app; `build.sh`
+  bundles, signs (stable identity by SHA-1) and installs it.
+  `servers.json` holds servers; passwords only in the Keychain.
+- `skills/remote-mac/SKILL.md`: reads `servers.json`, opens
+  `vncbar://connect|type/<name>`; never handles passwords.
+- Never put a password in the `vnc://` URL (Screen Sharing stores it in
+  plaintext); never type unless the target window is verified and focused.
+- Docs screenshots come from `VNCBar --render-screenshots` (synthetic
+  servers); real hosts, users and window titles never enter the repo.
+
 ## Commands
 
 ```sh
@@ -107,6 +120,11 @@ python3 evals/feature-inventory/negative_cases.py
 
 # Port: replay the port scripts on the synthetic fixture
 evals/app-port/run.sh                        # --update regenerates expected/
+
+# VNCBar: unit tests, build + install, docs screenshots
+(cd tools/vnc-bar && swift test)
+tools/vnc-bar/build.sh --install
+tools/vnc-bar/build/VNCBar.app/Contents/MacOS/VNCBar --render-screenshots docs/tools/images/vnc-bar
 
 # Validate plugin/marketplace manifests and skill frontmatter
 claude plugin validate .
