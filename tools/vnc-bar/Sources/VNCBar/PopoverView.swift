@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PopoverView: View {
     let store: ServerStore
+    let connect: (Server) -> Void
     @State private var editing: EditTarget?
 
     enum EditTarget: Equatable {
@@ -40,9 +41,8 @@ struct PopoverView: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         ForEach(store.servers) { server in
-                            ServerRow(server: server, hasPassword: store.withPassword.contains(server.id)) {
-                                editing = .existing(server)
-                            }
+                            ServerRow(server: server, hasPassword: store.withPassword.contains(server.id),
+                                      connect: { connect(server) }, edit: { editing = .existing(server) })
                             if server.id != store.servers.last?.id { Divider() }
                         }
                     }
@@ -62,6 +62,7 @@ struct PopoverView: View {
 private struct ServerRow: View {
     let server: Server
     let hasPassword: Bool
+    let connect: () -> Void
     let edit: () -> Void
 
     var body: some View {
@@ -75,7 +76,7 @@ private struct ServerRow: View {
                 }
             }
             Spacer()
-            Button("Connect") {}.disabled(true)
+            Button("Connect", action: connect)
             Button("Password") {}.disabled(true)
             Button(action: edit) { Image(systemName: "pencil") }
                 .buttonStyle(.borderless)

@@ -10,8 +10,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let store = ServerStore()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        EditMenu.install()
         popover.behavior = .transient
-        let host = NSHostingController(rootView: PopoverView(store: store))
+        let host = NSHostingController(rootView: PopoverView(store: store, connect: { [weak self] in self?.connect($0) }))
         host.sizingOptions = .preferredContentSize  // the popover follows list ⇄ editor size changes
         popover.contentViewController = host
 
@@ -22,6 +23,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             button.action = #selector(togglePopover(_:))
         }
         statusItem = item
+    }
+
+    private func connect(_ server: Server) {
+        popover.performClose(nil)
+        Task {
+            do {
+                try await Connector.connect(server)
+            } catch {
+                let alert = NSAlert()
+                alert.messageText = "Could not connect to \(server.name)"
+                alert.informativeText = error.localizedDescription
+                NSApp.activate()
+                alert.runModal()
+            }
+        }
     }
 
     @objc private func togglePopover(_ sender: NSStatusBarButton) {
