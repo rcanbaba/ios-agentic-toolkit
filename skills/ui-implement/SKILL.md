@@ -85,6 +85,9 @@ enough, but it is still shown first.
    afterwards) and, if the app supports it, in dark appearance. Look at every
    screenshot: overflow past the screen edge, truncated numbers, text colored
    for the wrong surface, crowded rows.
+4. For a new screen or a batch of them, offer the `visual-review` skill: an
+   independent reviewer reads the screenshots against the contract and the
+   mobile UX rules. Its approved findings come back here as fixes.
 
 ## 5. Report
 
