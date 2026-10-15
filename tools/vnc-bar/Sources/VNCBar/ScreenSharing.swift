@@ -53,6 +53,30 @@ enum ScreenSharing {
         AXUIElementSetAttributeValue(window.element, kAXMainAttribute as CFString, kCFBooleanTrue)
     }
 
+    /// The first element in `element`'s subtree (depth-first, at most `depth` levels) matching `test`.
+    static func find(in element: AXUIElement, depth: Int = 6, _ test: (AXUIElement) -> Bool) -> AXUIElement? {
+        if test(element) { return element }
+        guard depth > 0 else { return nil }
+        let children: [AXUIElement] = attribute(element, kAXChildrenAttribute) ?? []
+        for child in children {
+            if let hit = find(in: child, depth: depth - 1, test) { return hit }
+        }
+        return nil
+    }
+
+    static func role(_ element: AXUIElement) -> String? { attribute(element, kAXRoleAttribute) }
+    static func subrole(_ element: AXUIElement) -> String? { attribute(element, kAXSubroleAttribute) }
+
+    /// A connected session: the window shows the remote screen.
+    static func isSession(_ window: Window) -> Bool {
+        find(in: window.element, depth: 1) { role($0) == "AXSharedScreen" } != nil
+    }
+
+    static func isFocused(_ window: Window, of app: NSRunningApplication) -> Bool {
+        guard isFrontmost(app), let focused = mainWindow(of: app) else { return false }
+        return CFEqual(focused.element, window.element)
+    }
+
     static func isFrontmost(_ app: NSRunningApplication) -> Bool {
         NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier
     }

@@ -69,6 +69,30 @@ final class ServerStore {
         servers = updated
     }
 
+    /// Remembers the title of the Screen Sharing window that `id` opened (or clears it with nil).
+    func setWindowTitle(_ title: String?, for id: UUID) throws {
+        guard let index = servers.firstIndex(where: { $0.id == id }), servers[index].windowTitle != title else { return }
+        var updated = servers
+        updated[index].windowTitle = title
+        try write(updated)
+        servers = updated
+    }
+
+    /// The server whose Screen Sharing window has this title: learned title, then host, then name.
+    /// Nil unless exactly one server matches at the first rule that matches any.
+    func server(forWindowTitle title: String) -> Server? {
+        let rules: [(Server) -> Bool] = [
+            { $0.windowTitle == title },
+            { title.contains($0.host) },
+            { title.localizedCaseInsensitiveContains($0.name) },
+        ]
+        for rule in rules {
+            let hits = servers.filter(rule)
+            if !hits.isEmpty { return hits.count == 1 ? hits[0] : nil }
+        }
+        return nil
+    }
+
     func delete(_ server: Server) throws {
         let updated = servers.filter { $0.id != server.id }
         try write(updated)

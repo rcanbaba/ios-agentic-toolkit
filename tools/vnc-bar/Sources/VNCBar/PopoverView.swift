@@ -7,6 +7,8 @@ struct PopoverView: View {
     let typePassword: (Server) -> Void
     @State private var editing: EditTarget?
 
+    @State private var showingSettings = false
+
     enum EditTarget: Equatable {
         case new
         case existing(Server)
@@ -16,6 +18,8 @@ struct PopoverView: View {
         Group {
             if let editing {
                 ServerEditor(store: store, target: editing) { self.editing = nil }
+            } else if showingSettings {
+                SettingsView { showingSettings = false }
             } else {
                 list
             }
@@ -29,6 +33,8 @@ struct PopoverView: View {
             HStack {
                 Text("VNCBar").font(.headline)
                 Spacer()
+                Button { showingSettings = true } label: { Image(systemName: "gearshape") }
+                    .help("Settings")
                 Button { editing = .new } label: { Image(systemName: "plus") }
                     .help("Add a server")
             }

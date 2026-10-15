@@ -8,11 +8,6 @@ enum PasswordTyping {
         var errorDescription: String? { message }
     }
 
-    static var keyDelay: Duration {
-        let ms = UserDefaults.standard.object(forKey: "keyDelayMilliseconds") as? Int ?? 100
-        return .milliseconds(max(10, ms))
-    }
-
     static func typePassword(for server: Server) async throws {
         guard AXIsProcessTrusted() else {
             throw Failure(message: "VNCBar needs the Accessibility permission to type. Open VNCBar and press Grant.")
@@ -35,6 +30,6 @@ enum PasswordTyping {
             throw Failure(message: "Screen Sharing did not come to the front; nothing was typed.")
         }
         try await Task.sleep(for: .milliseconds(300))
-        try await Typer(keyDelay: keyDelay).type(password, pressReturn: true) { ScreenSharing.isFrontmost(app) }
+        try await Typer(keyDelay: Settings.keyDelay).type(password, pressReturn: true) { ScreenSharing.isFrontmost(app) }
     }
 }

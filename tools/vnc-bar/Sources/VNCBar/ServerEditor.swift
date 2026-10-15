@@ -35,6 +35,14 @@ struct ServerEditor: View {
                 TextField("Username", text: $server.username)
                 SecureField("Password", text: $password,
                             prompt: Text(hasStoredPassword ? "Unchanged" : "Password"))
+                if let title = server.windowTitle {
+                    LabeledContent("Window title") {
+                        HStack {
+                            Text(title).foregroundStyle(.secondary)
+                            Button("Forget") { server.windowTitle = nil }
+                        }
+                    }
+                }
             }
             if let error {
                 Text(error).font(.caption).foregroundStyle(.red)
