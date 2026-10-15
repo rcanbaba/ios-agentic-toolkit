@@ -1,0 +1,107 @@
+{
+  "contract": "App/DesignSystem/design-system.json",
+  "files_scanned": 4,
+  "errors": 5,
+  "warnings": 6,
+  "summary": {
+    "error:literal-color": 1,
+    "error:literal-font": 1,
+    "error:row-text-style": 1,
+    "error:unknown-token": 2,
+    "warning:fixed-size-in-row": 1,
+    "warning:literal-radius": 1,
+    "warning:literal-spacing": 2,
+    "warning:system-color": 1,
+    "warning:system-text-style": 1
+  },
+  "findings": [
+    {
+      "file": "App/Features/Leaderboard/LeaderboardRowView.swift",
+      "line": 11,
+      "rule": "literal-spacing",
+      "severity": "warning",
+      "message": "literal 10 is off the spacing scale (4, 8, 12, 16, 24, 40)",
+      "text": "HStack(spacing: 10) {"
+    },
+    {
+      "file": "App/Features/Leaderboard/LeaderboardRowView.swift",
+      "line": 16,
+      "rule": "row-text-style",
+      "severity": "error",
+      "message": ".display (36pt) is for hero, not rows",
+      "text": ".dsFont(.display)"
+    },
+    {
+      "file": "App/Features/Leaderboard/LeaderboardRowView.swift",
+      "line": 17,
+      "rule": "fixed-size-in-row",
+      "severity": "warning",
+      "message": "fixedSize in a row: the text cannot shrink or truncate and can push the row past the screen width",
+      "text": ".fixedSize()"
+    },
+    {
+      "file": "App/Features/Leaderboard/LeaderboardRowView.swift",
+      "line": 19,
+      "rule": "literal-spacing",
+      "severity": "warning",
+      "message": "literal 16; use DS.Spacing.md",
+      "text": ".padding(16)"
+    },
+    {
+      "file": "App/Features/Wallet/WalletCard.swift",
+      "line": 9,
+      "rule": "system-text-style",
+      "severity": "warning",
+      "message": "Apple text style; use .dsFont(.<style>)",
+      "text": "Text(\"Balance\").font(.headline)"
+    },
+    {
+      "file": "App/Features/Wallet/WalletCard.swift",
+      "line": 11,
+      "rule": "literal-font",
+      "severity": "error",
+      "message": "literal font; use .dsFont(.<style>)",
+      "text": ".font(.system(size: 28, weight: .bold))"
+    },
+    {
+      "file": "App/Features/Wallet/WalletCard.swift",
+      "line": 12,
+      "rule": "system-color",
+      "severity": "warning",
+      "message": "system color; use a DS.Colors token",
+      "text": ".foregroundStyle(.blue)"
+    },
+    {
+      "file": "App/Features/Wallet/WalletCard.swift",
+      "line": 13,
+      "rule": "unknown-token",
+      "severity": "error",
+      "message": ".dsFont(.huge) is not a contract text style",
+      "text": "Text(\"Top up\").dsFont(.huge)"
+    },
+    {
+      "file": "App/Features/Wallet/WalletCard.swift",
+      "line": 16,
+      "rule": "literal-color",
+      "severity": "error",
+      "message": "literal color; use a DS.Colors token",
+      "text": ".background(Color(red: 0.98, green: 0.95, blue: 0.9))"
+    },
+    {
+      "file": "App/Features/Wallet/WalletCard.swift",
+      "line": 17,
+      "rule": "literal-radius",
+      "severity": "warning",
+      "message": "literal corner radius; use DS.Radius / DS.Shapes",
+      "text": ".overlay(RoundedRectangle(cornerRadius: 14).stroke(DS.Colors.brandPink))"
+    },
+    {
+      "file": "App/Features/Wallet/WalletCard.swift",
+      "line": 17,
+      "rule": "unknown-token",
+      "severity": "error",
+      "message": "DS.Colors.brandPink is not in the contract or an extension DS",
+      "text": ".overlay(RoundedRectangle(cornerRadius: 14).stroke(DS.Colors.brandPink))"
+    }
+  ]
+}
