@@ -31,6 +31,16 @@ refined by grading real runs.
 Planned items are ideas, not features. Each will be designed when a real task
 needs it.
 
+## Tools
+
+Small native apps for the environment iOS work runs in. Each does a
+deterministic job that needs permissions or secrets a model should not hold,
+and comes with a thin skill so Claude Code can trigger it.
+
+| Tool | What it does | Status |
+|---|---|---|
+| <img src="docs/tools/images/vnc-bar/icon.png" width="20" align="center"> [VNCBar](docs/tools/vnc-bar.md) | Menu bar app: one click connects to a remote Mac over Screen Sharing, gets through its dialogs and logs in; passwords stay in the Keychain. The `remote-mac` skill triggers it. | **Implemented**, used daily |
+
 ## Principles
 
 - **Hybrid deterministic + agentic.** Behavior that can be specified reliably
@@ -57,7 +67,7 @@ needs it.
 | **Skill** | Knowledge and procedure for one task, loaded on demand | [`skills/<name>/SKILL.md`](skills/) |
 | **Agent / subagent** | A separate reasoning context, used only when isolation or focus clearly pays off | Parallel area agents and independent verifiers in [App Migration](docs/workflows/app-migration.md#design-decisions); parallel restyle agents in [App Port](docs/workflows/app-port.md#design-decisions) |
 | **Contract** | Structured output that a later step, human or eval consumes | [`schemas/`](schemas/) |
-| **Tool** | A deterministic program the agent runs and observes | [`scripts/`](scripts/), `xcodebuild`, `simctl`, `git` |
+| **Tool** | A deterministic program the agent runs and observes | [`scripts/`](scripts/), native apps in [`tools/`](tools/), `xcodebuild`, `simctl`, `git` |
 | **Workflow** | Skills, deterministic steps and human decisions put together for one area of work | [`docs/workflows/`](docs/workflows/) |
 | **Eval** | Rubric and fixtures that measure a workflow's behavior | [`evals/`](evals/) |
 
@@ -128,7 +138,9 @@ rules/                 shared, domain-independent engineering rules
 skills/<name>/         one folder per skill (SKILL.md + on-demand references)
 schemas/               contracts between steps
 scripts/               deterministic tools
+tools/<name>/          native apps (Swift packages) with their build scripts
 docs/workflows/        one document per workflow: design, usage, decisions, lessons
+docs/tools/            one document per tool
 examples/<area>/       synthetic inputs and expected outputs
 evals/<skill>/         rubrics and fixture plans
 ```
