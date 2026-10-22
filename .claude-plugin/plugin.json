@@ -1,7 +1,7 @@
 {
   "name": "ios-agentic-toolkit",
-  "version": "0.6.0",
-  "description": "Supervised, evidence-first agentic workflows for iOS engineering: crash investigation and approval-gated fixing, design systems from references to generated SwiftUI, verified feature inventories and flow specs for migrating legacy apps, and build-error-driven code ports with parallel design-system restyling, new SwiftUI screens on the design system behind a token-usage gate, plus VNCBar, a menu bar app for one-click logins to remote Macs.",
+  "version": "0.7.0",
+  "description": "Supervised, evidence-first agentic workflows for iOS engineering: crash investigation and approval-gated fixing, design systems from references to generated SwiftUI, verified feature inventories and flow specs for migrating legacy apps, and build-error-driven code ports with parallel design-system restyling, new SwiftUI screens on the design system behind a token-usage gate, read-only visual review of screenshots against the design system and mobile UX rules, plus VNCBar, a menu bar app for one-click logins to remote Macs.",
   "author": {
     "name": "rcanbaba",
     "url": "https://github.com/rcanbaba"
@@ -20,6 +20,7 @@
     "app-migration",
     "app-port",
     "swiftui-ui",
+    "visual-review",
     "remote-mac"
   ]
 }

@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "app": "Synthetic leaderboard app",
+  "contract": "design-system.json",
+  "screens": [
+    {
+      "id": "leaderboard",
+      "name": "Leaderboard",
+      "screenshots": [
+        { "file": "screenshots/leaderboard-light.png", "variant": "light" },
+        { "file": "screenshots/leaderboard-large-type.png", "variant": "large-type" }
+      ],
+      "files": ["App/Features/Leaderboard/LeaderboardRowView.swift"]
+    },
+    {
+      "id": "wallet",
+      "name": "Wallet",
+      "accepted_before": true,
+      "screenshots": [
+        { "file": "screenshots/wallet-light.png", "variant": "light" }
+      ],
+      "files": ["App/Features/Wallet/WalletCard.swift"]
+    }
+  ],
+  "findings": [
+    {
+      "id": "V1",
+      "screen": "leaderboard",
+      "rule": "TYPE-ROW",
+      "severity": "major",
+      "observation": "The points in every row are as large as the screen title and push the names to a few characters",
+      "evidence": [
+        { "kind": "screenshot", "ref": "screenshots/leaderboard-light.png" },
+        { "kind": "code", "ref": "App/Features/Leaderboard/LeaderboardRowView.swift:16" },
+        { "kind": "lint", "ref": "reports/ds-usage.json" }
+      ],
+      "suggested_fix": "Use .dsFont(.label) with .monospacedDigit() for the points; .display is the screen's hero style",
+      "confidence": "seen",
+      "siblings": ["App/Features/**/*RowView.swift"],
+      "decision": "open"
+    },
+    {
+      "id": "V2",
+      "screen": "leaderboard",
+      "rule": "LAYOUT-OVERFLOW",
+      "severity": "blocker",
+      "observation": "At the large text size the points keep their full width and the row runs past the right edge",
+      "evidence": [
+        { "kind": "screenshot", "ref": "screenshots/leaderboard-large-type.png" },
+        { "kind": "code", "ref": "App/Features/Leaderboard/LeaderboardRowView.swift:17" }
+      ],
+      "suggested_fix": "Remove .fixedSize(); give the points layoutPriority(1) and minimumScaleFactor(0.7), and let the name truncate",
+      "confidence": "seen"
+    },
+    {
+      "id": "V3",
+      "screen": "wallet",
+      "rule": "SURFACE-PALETTE",
+      "severity": "major",
+      "observation": "The balance is drawn in system blue, which is not in the palette",
+      "evidence": [
+        { "kind": "screenshot", "ref": "screenshots/wallet-light.png" },
+        { "kind": "palette", "ref": "reports/palette.json" },
+        { "kind": "code", "ref": "App/Features/Wallet/WalletCard.swift:12" }
+      ],
+      "suggested_fix": "DS.Colors.ink for the balance; vermilion is reserved for the primary action",
+      "confidence": "seen"
+    },
+    {
+      "id": "V4",
+      "screen": "wallet",
+      "rule": "DS-GUIDE",
+      "guideline": "Keep at most one primaryButton per screen",
+      "severity": "major",
+      "observation": "Two filled vermilion buttons, stacked under the card",
+      "evidence": [
+        { "kind": "screenshot", "ref": "screenshots/wallet-light.png" }
+      ],
+      "suggested_fix": "Keep the top-up as primaryButton; the second action becomes secondaryButton",
+      "confidence": "seen"
+    }
+  ],
+  "not_checked": [
+    "Dark appearance: no dark screenshots were captured",
+    "Wallet loading and error states: need a failing backend"
+  ]
+}

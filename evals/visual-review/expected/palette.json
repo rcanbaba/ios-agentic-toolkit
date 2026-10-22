@@ -1,0 +1,91 @@
+{
+  "contract": "design-system.json",
+  "appearance": "light",
+  "tolerance": 6.0,
+  "min_coverage": 0.01,
+  "unexplained": 1,
+  "images": [
+    {
+      "file": "screenshots/leaderboard-large-type.png",
+      "clusters": [
+        {
+          "hex": "#F6F1E7",
+          "coverage": 0.5,
+          "explained_by": "paper",
+          "delta_e": 0.0
+        },
+        {
+          "hex": "#FFFCF5",
+          "coverage": 0.439,
+          "explained_by": "card",
+          "delta_e": 0.0
+        },
+        {
+          "hex": "#1F1B16",
+          "coverage": 0.046,
+          "explained_by": "ink",
+          "delta_e": 0.0
+        }
+      ]
+    },
+    {
+      "file": "screenshots/leaderboard-light.png",
+      "clusters": [
+        {
+          "hex": "#F6F1E7",
+          "coverage": 0.552,
+          "explained_by": "paper",
+          "delta_e": 0.0
+        },
+        {
+          "hex": "#FFFCF5",
+          "coverage": 0.309,
+          "explained_by": "card",
+          "delta_e": 0.0
+        },
+        {
+          "hex": "#C2410C",
+          "coverage": 0.098,
+          "explained_by": "vermilion",
+          "delta_e": 0.0
+        },
+        {
+          "hex": "#8B857C",
+          "coverage": 0.023,
+          "explained_by": "blend paper + ink",
+          "delta_e": 1.0
+        }
+      ]
+    },
+    {
+      "file": "screenshots/wallet-light.png",
+      "clusters": [
+        {
+          "hex": "#F6F1E7",
+          "coverage": 0.581,
+          "explained_by": "paper",
+          "delta_e": 0.0
+        },
+        {
+          "hex": "#FFFCF5",
+          "coverage": 0.208,
+          "explained_by": "card",
+          "delta_e": 0.0
+        },
+        {
+          "hex": "#C2410C",
+          "coverage": 0.127,
+          "explained_by": "vermilion",
+          "delta_e": 0.0
+        },
+        {
+          "hex": "#007AFF",
+          "coverage": 0.069,
+          "explained_by": null,
+          "nearest": "inkMuted",
+          "delta_e": 85.4
+        }
+      ]
+    }
+  ]
+}
