@@ -65,7 +65,7 @@ and comes with a thin skill so Claude Code can trigger it.
 |---|---|---|
 | **Rule** | A domain-independent engineering constraint shared by all workflows | [`rules/`](rules/ios-engineering.md) |
 | **Skill** | Knowledge and procedure for one task, loaded on demand | [`skills/<name>/SKILL.md`](skills/) |
-| **Agent / subagent** | A separate reasoning context, used only when isolation or focus clearly pays off | Parallel area agents and independent verifiers in [App Migration](docs/workflows/app-migration.md#design-decisions); parallel restyle agents in [App Port](docs/workflows/app-port.md#design-decisions) |
+| **Agent / subagent** | A separate reasoning context, used only when isolation or focus clearly pays off | Parallel area agents and independent verifiers in [App Migration](docs/workflows/app-migration.md#design-decisions); parallel restyle agents in [App Port](docs/workflows/app-port.md#design-decisions); an independent reviewer in [Visual Review](docs/workflows/visual-review.md#design-decisions) |
 | **Contract** | Structured output that a later step, human or eval consumes | [`schemas/`](schemas/) |
 | **Tool** | A deterministic program the agent runs and observes | [`scripts/`](scripts/), native apps in [`tools/`](tools/), `xcodebuild`, `simctl`, `git` |
 | **Workflow** | Skills, deterministic steps and human decisions put together for one area of work | [`docs/workflows/`](docs/workflows/) |
