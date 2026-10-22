@@ -83,6 +83,9 @@ Workflow-specific design, usage, decisions and lessons go in
   `scripts/port_missing_symbols.py` (missing symbol/member → unique legacy file;
   duplicates → temporary copies to remove) and `scripts/port_assets.py`
   (generated asset symbol → set; never AccentColor/app icons).
+  Its last step is the parity gate: `scripts/parity_check.py` checks every
+  inventoried feature's files and symbols in the new app, with the legacy app
+  as baseline (`inherited`) and an `allow` list with reasons.
 - `skills/ui-port/SKILL.md`: parallel restyle agents on the design system;
   `port-rules-template.md` and `restyle-agent-prompt.md` next to it;
   `scripts/find_legacy_styling.py` measures, batches and gates.
@@ -118,7 +121,7 @@ swift scripts/sample_colors.swift <image.png>
 evals/feature-inventory/replay.sh            # --update regenerates the example after an intended change
 python3 evals/feature-inventory/negative_cases.py
 
-# Port: replay the port scripts on the synthetic fixture
+# Port: replay the port scripts (including the parity gate) on the synthetic fixture
 evals/app-port/run.sh                        # --update regenerates expected/
 
 # VNCBar: unit tests, build + install, docs screenshots

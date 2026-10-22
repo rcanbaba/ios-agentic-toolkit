@@ -2,7 +2,7 @@
 name: port-code
 description: Port a legacy iOS app's code and assets into a new app, verbatim, driven by build errors. Copies the agreed scope, then loops build → resolve missing symbols and assets from the legacy app → build until green, removing temporary shims as their originals arrive and recording everything in the porting ledger. Runs after port-prep; writes only in the new app. Use when the user starts or continues moving features, screens or the core layer from an old app into a new one.
 argument-hint: "<what to port: core | a feature list | the rest> [legacy root] [new app root]"
-allowed-tools: Read, Glob, Grep, Edit, Write, Bash(python3 *port_missing_symbols.py *), Bash(python3 *port_assets.py *), Bash(xcodebuild *), Bash(xcrun simctl *), Bash(cp *), Bash(mkdir *), Bash(git status*), Bash(git diff*)
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash(python3 *port_missing_symbols.py *), Bash(python3 *port_assets.py *), Bash(python3 *parity_check.py *), Bash(xcodebuild *), Bash(xcrun simctl *), Bash(cp *), Bash(mkdir *), Bash(git status*), Bash(git diff*)
 ---
 
 # Port Code
@@ -132,3 +132,27 @@ mechanically later.
 In chat: what was ported, rounds needed, files and assets copied, shims and
 placeholders left, exclusions, and the build result. Say plainly that the
 UI is still the legacy styling and that `ui-port` is the next step.
+
+## 6. Parity gate (after the last slice)
+
+A green build proves that what was copied compiles, not that everything was
+copied, and a restyle can drop a call while the file still builds. When the
+user says the port is complete (and again after `ui-port`), check every
+inventoried feature mechanically:
+
+1. Write `.migration/parity/parity.config.json` for
+   `${CLAUDE_PLUGIN_ROOT}/scripts/parity_check.py`: `legacy_src`, `new_src`,
+   the inventory and enumerations from `feature-inventory`, the path map, one
+   `symbols` entry per enumeration key (a `declared` and/or `used` regex), and
+   `feature_fields` mapping inventory fields to those keys. Set `legacy_src`:
+   symbols that were already dead in the legacy app are then reported as
+   `inherited` instead of as gaps.
+2. Run it: `python3 scripts/parity_check.py .migration/parity/parity.config.json --md .migration/parity/report.md`.
+3. Read every gap in the legacy code before acting on it. `declared_unused`
+   (still compiles, nothing calls it any more) is the most valuable finding:
+   port the missing caller. A gap that is deliberate (deferred feature,
+   replaced component, a symbol used only by deferred code) goes into `allow`
+   with a reason the user can read; never allow a gap without reading it.
+4. The gate is exit code 0. It checks presence, not behavior: wire-format and
+   runtime defects still need the flow specs' acceptance tests and a run on
+   the simulator.

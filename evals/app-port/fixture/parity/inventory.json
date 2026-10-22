@@ -1,0 +1,23 @@
+{
+  "features": [
+    {
+      "id": "profile-view", "name": "View own profile", "criticality": "core",
+      "source_files": ["Scenes/Profile/ProfileScreen.swift"],
+      "screens": [{"name": "ProfileScreen", "file": "Scenes/Profile/ProfileScreen.swift"}],
+      "api_methods": ["fetchProfile"], "app_routes": ["profile", "gifts"],
+      "localization_keys_sample": ["profile_title"]
+    },
+    {
+      "id": "send-gift", "name": "Send a gift", "criticality": "core",
+      "source_files": ["Scenes/Gifts/GiftSheet.swift", "Scenes/Gifts/GiftCombo.swift", "Scenes/Gifts (shared with chat)"],
+      "api_methods": ["sendGift (POST /gift/send)"], "app_routes": ["gifts"],
+      "localization_keys_sample": ["gift_sent"]
+    },
+    {
+      "id": "wallet-buy-tokens", "name": "Buy tokens", "criticality": "core",
+      "source_files": ["Scenes/Wallet/WalletScreen.swift"],
+      "api_methods": ["buyTokens"], "app_routes": ["wallet"],
+      "localization_keys_sample": ["wallet_title"]
+    }
+  ]
+}

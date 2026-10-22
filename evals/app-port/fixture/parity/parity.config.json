@@ -1,0 +1,24 @@
+{
+  "legacy_src": "legacy",
+  "new_src": "new/App",
+  "inventory": "inventory.json",
+  "enumerations": "enumerations.json",
+  "path_map": [["Scenes/", "Features/"], ["Networking/", "Core/Networking/"]],
+  "symbols": {
+    "api_client_methods": {"attr": "method", "declared": "func\\s+{name}\\b", "used": "\\.{name}\\("},
+    "app_routes": {"attr": "case", "declared": "case\\b[^\\n]*\\b{name}\\b", "used": "\\.{name}\\b"},
+    "localization_keys": {"attr": "key", "used": "\"{name}\""}
+  },
+  "feature_fields": {
+    "api_methods": "api_client_methods",
+    "app_routes": "app_routes",
+    "localization_keys_sample": "localization_keys"
+  },
+  "allow": [
+    {"match": "feature:wallet-*", "reason": "deferred to the end of the port"},
+    {"match": "file:Scenes/Wallet/*", "reason": "deferred"},
+    {"match": "api_client_methods:buyTokens", "reason": "called only by the deferred wallet"},
+    {"match": "app_routes:wallet", "reason": "used only by the deferred wallet"},
+    {"match": "localization_keys:wallet_title", "reason": "used only by the deferred wallet"}
+  ]
+}

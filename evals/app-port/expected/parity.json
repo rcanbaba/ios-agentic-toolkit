@@ -1,0 +1,109 @@
+{
+  "new_src": "App",
+  "swift_files_scanned": 4,
+  "summary": {
+    "features": 3,
+    "partial": 1,
+    "allowed": 1,
+    "ported": 1,
+    "enumeration_gaps": 2
+  },
+  "enumerations": {
+    "api_client_methods": {
+      "total": 4,
+      "present": 1,
+      "declared_unused": [
+        "sendGift"
+      ],
+      "missing": [],
+      "allowed": [
+        {
+          "name": "buyTokens",
+          "status": "declared_unused",
+          "reason": "called only by the deferred wallet"
+        }
+      ],
+      "inherited": [
+        {
+          "name": "legacyPing",
+          "status": "declared_unused"
+        }
+      ]
+    },
+    "app_routes": {
+      "total": 3,
+      "present": 1,
+      "declared_unused": [],
+      "missing": [],
+      "allowed": [
+        {
+          "name": "wallet",
+          "status": "declared_unused",
+          "reason": "used only by the deferred wallet"
+        }
+      ],
+      "inherited": [
+        {
+          "name": "profile",
+          "status": "declared_unused"
+        }
+      ]
+    },
+    "localization_keys": {
+      "total": 3,
+      "present": 1,
+      "declared_unused": [],
+      "missing": [
+        "gift_sent"
+      ],
+      "allowed": [
+        {
+          "name": "wallet_title",
+          "status": "missing",
+          "reason": "used only by the deferred wallet"
+        }
+      ],
+      "inherited": []
+    }
+  },
+  "features": [
+    {
+      "id": "send-gift",
+      "name": "Send a gift",
+      "criticality": "core",
+      "status": "partial",
+      "missing_files": [
+        "Scenes/Gifts/GiftCombo.swift"
+      ],
+      "unchecked_entries": [
+        "Scenes/Gifts (shared with chat)"
+      ],
+      "missing_symbols": {
+        "localization_keys_sample": [
+          "gift_sent"
+        ]
+      },
+      "declared_unused": {
+        "api_methods": [
+          "sendGift"
+        ]
+      }
+    },
+    {
+      "id": "wallet-buy-tokens",
+      "name": "Buy tokens",
+      "criticality": "core",
+      "status": "allowed",
+      "reason": "deferred to the end of the port",
+      "allowed_files": [
+        "Scenes/Wallet/WalletScreen.swift"
+      ]
+    },
+    {
+      "id": "profile-view",
+      "name": "View own profile",
+      "criticality": "core",
+      "status": "ported"
+    }
+  ]
+}
