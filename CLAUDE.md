@@ -7,8 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A Claude Code **plugin** (not an iOS app): a general iOS toolkit made of
 multiple workflows (crash, UI, release, ...). It is used from *other* iOS
 repositories (`/plugin install` or `claude --plugin-dir <this repo>`). This
-repo is where the toolkit is developed. Crash, design-system, app-migration and
-app-port workflows are implemented; the "Planned" rows in the README workflow table are
+repo is where the toolkit is developed. Crash, design-system, app-migration,
+app-port and UI implementation workflows are implemented; the "Planned" rows in the README workflow table are
 intentionally unbuilt. `tools/` holds native helper apps (VNCBar) with thin
 skills that trigger them; their docs go in `docs/tools/<tool>.md`.
 
@@ -95,6 +95,16 @@ Workflow-specific design, usage, decisions and lessons go in
   `evals/app-port/expected/` (`evals/app-port/run.sh --update`), and adding a
   fixture case for every defect fixed.
 
+## UI implementation workflow: how the parts connect
+
+- `skills/ui-implement/SKILL.md`: new screens on the design system inside the
+  project's architecture; plan approval, then the gate.
+- `scripts/check_ds_usage.py`: reads the design-system contract (token names,
+  spacing scale, text style sizes and `uses`) and scans Swift files.
+- Changing a rule means updating the script header, the skill, the fixture
+  and `evals/ui-implementation/expected/` (`run.sh --update`), with a fixture
+  case for each new rule or fixed false positive.
+
 ## VNCBar tool: how the parts connect
 
 - `tools/vnc-bar/`: Swift package for a macOS menu bar app; `build.sh`
@@ -125,6 +135,9 @@ python3 evals/feature-inventory/negative_cases.py
 
 # Port: replay the port scripts (including the parity gate) on the synthetic fixture
 evals/app-port/run.sh                        # --update regenerates expected/
+
+# UI implementation: replay the token-usage gate on the synthetic fixture
+evals/ui-implementation/run.sh               # --update regenerates expected/
 
 # VNCBar: unit tests, build + install, docs screenshots
 (cd tools/vnc-bar && swift test)

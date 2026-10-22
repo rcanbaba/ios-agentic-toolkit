@@ -19,7 +19,7 @@ refined by grading real runs.
 | [Design System](docs/workflows/design-system.md) | Reference screenshots + your direction → original design-system contract, generated SwiftUI tokens and a rendered specimen | **Implemented**, refined in real use |
 | [App Migration](docs/workflows/app-migration.md) | Deterministic baseline from code + parallel area agents + independent verification → complete, verified feature inventory; validated as-is flow specs and a decision log; an independent audit; port preparation for a legacy app | **Implemented**, refined by an audit of a real run |
 | [App Port](docs/workflows/app-port.md) | Verbatim, build-error-driven port of a legacy app's code and assets into a new app; then the view layer rebuilt on the new design system by parallel restyle agents, gated by a legacy-styling report and a human screenshot review; a final parity gate checks every inventoried feature against the legacy app | **Implemented**, derived from a real port |
-| SwiftUI UI Implementation | Implements screens using the design-system contract and generated tokens, within the existing project architecture | Planned |
+| [SwiftUI UI Implementation](docs/workflows/ui-implementation.md) | New screens on the design-system contract and generated tokens, inside the existing architecture: an approved element → token plan, then a deterministic token-usage gate, the build and simulator screenshots | **Implemented**, derived from a real port |
 | Visual Review | Compares implemented UI with design-system rules and feeds violations back to implementation | Planned |
 | App Store Metadata | Description, subtitle, keywords and review notes | Planned |
 | App Review Assistant | Prepares responses to App Review | Planned |
