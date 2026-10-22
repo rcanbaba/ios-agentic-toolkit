@@ -24,7 +24,7 @@
     "estimates"
   ],
   "properties": {
-    "schema_version": { "type": "string", "enum": ["1.0"] },
+    "schema_version": { "type": "string", "enum": ["1.0", "1.1"], "description": "1.1 adds the optional gradients, overlays, text style uses and component pressed states; 1.0 contracts stay valid." },
     "name": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Kebab-case slug; also the working directory name." },
     "summary": { "type": "string", "minLength": 1, "description": "One paragraph describing the visual language." },
     "direction": {
@@ -120,7 +120,13 @@
               "relative_to": { "type": "string", "enum": ["largeTitle", "title", "title2", "title3", "headline", "subheadline", "body", "callout", "footnote", "caption", "caption2"], "description": "Dynamic Type text style the size scales with." },
               "postscript_name": { "type": "string", "description": "Required for bundled families." },
               "tracking": { "type": "number" },
-              "line_spacing": { "type": "number", "minimum": 0 }
+              "line_spacing": { "type": "number", "minimum": 0 },
+              "uses": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "type": "string", "enum": ["hero", "section", "row", "control", "caption"] },
+                "description": "Where the style may appear. hero: the one big title or number of a screen; section: section and card titles; row: list rows, cells and dense stat rows; control: buttons and inputs; caption: metadata. A style without uses may appear anywhere."
+              }
             }
           }
         }
@@ -182,6 +188,36 @@
         }
       }
     },
+    "gradients": {
+      "type": "array",
+      "description": "Gradients composed only from color tokens.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "colors", "direction"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" },
+          "colors": { "type": "array", "minItems": 2, "items": { "type": "string" }, "description": "Color token names, in order." },
+          "direction": { "type": "string", "enum": ["vertical", "horizontal", "diagonal"], "description": "vertical: top to bottom; horizontal: leading to trailing; diagonal: top leading to bottom trailing." },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "overlays": {
+      "type": "array",
+      "description": "Translucent layers made from a color token, such as the dimming behind popups and sheets.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "color", "opacity", "use"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[a-z][A-Za-z0-9]*$" },
+          "color": { "type": "string", "description": "Color token name." },
+          "opacity": { "type": "number", "minimum": 0, "maximum": 1 },
+          "use": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "components": {
       "type": "array",
       "description": "Recipes for core components, expressed only in tokens.",
@@ -200,6 +236,17 @@
           "border": { "type": ["string", "null"], "description": "Border token name." },
           "shadow": { "type": ["string", "null"], "description": "Shadow token name." },
           "min_height": { "type": "number", "minimum": 0 },
+          "pressed": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["offset_y", "drop_shadow"],
+            "description": "Press feedback for a tappable component, applied by the generated DSPressableButtonStyle.",
+            "properties": {
+              "offset_y": { "type": "number", "description": "Points the component moves down while pressed; a key-like press uses the shadow's y." },
+              "drop_shadow": { "type": "boolean", "description": "Whether the shadow disappears while pressed." },
+              "background": { "type": "string", "description": "Color token used while pressed; the normal background when absent." }
+            }
+          },
           "notes": { "type": "string" }
         }
       }

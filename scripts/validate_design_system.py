@@ -5,7 +5,8 @@ Deterministic gate before SwiftUI code generation. Two layers:
   1. Structural: schema_lite subset applied to schemas/design-system.schema.json.
   2. Semantic: unique Swift-safe names, token references resolve, required
      color roles exist, WCAG contrast of text/foreground pairs in light and
-     dark mode, bundled fonts have PostScript names.
+     dark mode, bundled fonts have PostScript names, text styles allowed in
+     rows stay small enough for dense rows, 1.1 fields need schema_version 1.1.
 
 Contrast below 3:1 is an error; below 4.5:1 is a warning (fine for large or
 bold text only).
@@ -35,6 +36,12 @@ CONTRAST_PAIRS = [
 
 ERROR_RATIO = 3.0
 WARN_RATIO = 4.5
+
+# A text style allowed in list rows above this size crowds dense rows (a name, an
+# avatar and a number in one line) and overflows them at large Dynamic Type sizes.
+ROW_MAX_SIZE = 20
+
+V11_FIELDS = ["gradients", "overlays"]
 
 SWIFT_KEYWORDS = {
     "associatedtype", "class", "deinit", "enum", "extension", "func", "import", "init", "inout",
@@ -99,6 +106,8 @@ def check_semantics(doc, errors, warnings):
         "shadows": [s["name"] for s in doc["shadows"]],
         "borders": [b["name"] for b in doc["borders"]],
         "components": [c["name"] for c in doc["components"]],
+        "gradients": [g["name"] for g in doc.get("gradients", [])],
+        "overlays": [o["name"] for o in doc.get("overlays", [])],
         "references": [r["id"] for r in doc["references"]],
     }
     for group, names in groups.items():
@@ -135,6 +144,30 @@ def check_semantics(doc, errors, warnings):
         if f["kind"] == "system" and "system_design" not in f:
             warnings.append(f"family {f['id']}: system family without system_design, using default")
 
+    declared_uses = [s for s in doc["typography"]["styles"] if "uses" in s]
+    for s in declared_uses:
+        if "row" in s["uses"] and s["size"] > ROW_MAX_SIZE:
+            warnings.append(
+                f"text style {s['name']}: {num_text(s['size'])}pt is allowed in rows; above {ROW_MAX_SIZE}pt it crowds "
+                "dense rows and overflows them at large type sizes"
+            )
+    if declared_uses and not any("row" in s["uses"] for s in declared_uses):
+        warnings.append("typography: styles declare uses but none is allowed in rows; list rows will pick a display size")
+
+    v11 = [f for f in V11_FIELDS if f in doc]
+    v11 += [f"text style {s['name']}.uses" for s in declared_uses]
+    v11 += [f"component {c['name']}.pressed" for c in doc["components"] if "pressed" in c]
+    if v11 and doc["schema_version"] == "1.0":
+        errors.append(f"schema_version 1.0 does not have {', '.join(v11)}; set schema_version to 1.1")
+
+    for g in doc.get("gradients", []):
+        for name in g["colors"]:
+            if name not in colors:
+                errors.append(f"gradient {g['name']}: unknown color '{name}'")
+    for o in doc.get("overlays", []):
+        if o["color"] not in colors:
+            errors.append(f"overlay {o['name']}: unknown color '{o['color']}'")
+
     values = [s["value"] for s in doc["spacing"]]
     if values != sorted(values):
         warnings.append("spacing: values are not in ascending order")
@@ -166,6 +199,16 @@ def check_semantics(doc, errors, warnings):
             check_pair(f"component {c['name']}", colors[c["foreground"]], colors[c["background"]], errors, warnings)
         if c.get("min_height", 44) < 44:
             warnings.append(f"component {c['name']}: min_height below 44pt; not suitable as a tap target")
+        pressed = c.get("pressed")
+        if pressed:
+            if pressed.get("background") is not None and pressed["background"] not in colors:
+                errors.append(f"component {c['name']}: unknown pressed.background token '{pressed['background']}'")
+            if pressed["drop_shadow"] and c.get("shadow") is None:
+                warnings.append(f"component {c['name']}: pressed.drop_shadow is set but the component has no shadow")
+
+
+def num_text(value):
+    return f"{value:g}"
 
 
 def main(argv):

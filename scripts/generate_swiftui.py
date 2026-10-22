@@ -6,9 +6,12 @@ of truth; generated files must not be edited by hand.
 
 Outputs (in --out):
   DesignTokens.swift           DS namespace: colors (light/dark), spacing, radii,
-                               shapes, shadows, borders, components; DSTextStyle
-                               with Dynamic Type scaling; .dsFont / .dsComponent
-  DesignSystemSpecimen.swift   Specimen view with Light / Dark / large-type previews
+                               shapes, shadows, borders, gradients, overlays,
+                               components; DSTextStyle with Dynamic Type scaling
+                               and allowed uses; .dsFont / .dsComponent;
+                               DSPressableButtonStyle; DSComponent.with(...)
+  DesignSystemSpecimen.swift   Specimen view with Light / Dark / large-type previews,
+                               including a dense list row built from the row styles
 
 Usage: generate_swiftui.py <design-system.json> --out <dir> [--check]
   --check   typecheck the output against the iOS Simulator SDK (needs Xcode)
@@ -45,6 +48,28 @@ def swift_string(value):
 
 def role_color(doc, role):
     return next(c["name"] for c in doc["colors"] if c["role"] == role)
+
+
+GRADIENT_POINTS = {
+    "vertical": (".top", ".bottom"),
+    "horizontal": (".leading", ".trailing"),
+    "diagonal": (".topLeading", ".bottomTrailing"),
+}
+
+# Above this size a style crowds a dense row; same limit as the validator's warning.
+ROW_MAX_SIZE = 20
+
+
+def row_styles(doc):
+    """(value style, meta style) for the specimen's dense rows: the declared row styles,
+    or without declared uses the largest and smallest styles that fit a row."""
+    styles = doc["typography"]["styles"]
+    declared = [s for s in styles if "row" in s.get("uses", [])]
+    pool = declared or [s for s in styles if s["size"] <= ROW_MAX_SIZE] or styles
+    meta_pool = declared + [s for s in styles if "caption" in s.get("uses", [])] if declared else pool
+    value = max(pool, key=lambda s: s["size"])
+    meta = min(meta_pool, key=lambda s: s["size"])
+    return value["name"], meta["name"]
 
 
 def tokens_swift(doc):
@@ -91,18 +116,42 @@ def tokens_swift(doc):
     out.append("    }")
     out.append("")
 
+    out.append("    enum Gradients {")
+    for g in doc.get("gradients", []):
+        start, end = GRADIENT_POINTS[g["direction"]]
+        stops = ", ".join(f"Colors.{name}" for name in g["colors"])
+        if g.get("note"):
+            out.append(f"        /// {g['note']}")
+        out.append(f"        static let {g['name']} = LinearGradient(colors: [{stops}], startPoint: {start}, endPoint: {end})")
+    out.append("    }")
+    out.append("")
+
+    out.append("    enum Overlays {")
+    for o in doc.get("overlays", []):
+        out.append(f"        /// {o['use']}")
+        out.append(f"        static let {o['name']} = Colors.{o['color']}.opacity({num(o['opacity'])})")
+    out.append("    }")
+    out.append("")
+
     radius_styles = {r["name"]: r["style"] for r in doc["radii"]}
     out.append("    enum Components {")
     for c in doc["components"]:
         border = f"Borders.{c['border']}" if c.get("border") else "nil"
         shadow = f"Shadows.{c['shadow']}" if c.get("shadow") else "nil"
+        pressed = "nil"
+        if c.get("pressed"):
+            p = c["pressed"]
+            background = f"Colors.{p['background']}" if p.get("background") else "nil"
+            drop = "true" if p["drop_shadow"] else "false"
+            pressed = f"DSPressed(offsetY: {num(p['offset_y'])}, dropShadow: {drop}, background: {background})"
         out.append(f"        /// {c['notes']}" if c["notes"] else "        ///")
         out.append(
             f"        static let {c['name']} = DSComponent(\n"
             f"            background: Colors.{c['background']}, foreground: Colors.{c['foreground']},\n"
             f"            textStyle: .{c['text_style']}, radius: Radius.{c['radius']}, radiusStyle: .{radius_styles[c['radius']]},\n"
             f"            paddingH: Spacing.{c['padding_h']}, paddingV: Spacing.{c['padding_v']},\n"
-            f"            border: {border}, shadow: {shadow}, minHeight: {num(c.get('min_height', 0))})"
+            f"            border: {border}, shadow: {shadow}, minHeight: {num(c.get('min_height', 0))},\n"
+            f"            pressed: {pressed})"
         )
     out.append("    }")
     out.append("}")
@@ -110,8 +159,16 @@ def tokens_swift(doc):
 
     families = {f["id"]: f for f in doc["typography"]["families"]}
     styles = doc["typography"]["styles"]
+    out.append("/// Where a text style may appear (contract `uses`).")
+    out.append("enum DSTextUse: String {")
+    out.append("    case hero, section, row, control, caption")
+    out.append("}")
+    out.append("")
     out.append("enum DSTextStyle: String, CaseIterable {")
-    out.append("    case " + ", ".join(s["name"] for s in styles))
+    for s in styles:
+        uses = s.get("uses")
+        out.append(f"    /// {num(s['size'])}pt {s['weight']} · " + (f"uses: {', '.join(uses)}" if uses else "any use"))
+        out.append(f"    case {s['name']}")
     out.append("")
 
     def switch(prop, type_name, value_fn):
@@ -128,6 +185,8 @@ def tokens_swift(doc):
     switch("tracking", "CGFloat", lambda s: num(s.get("tracking", 0)))
     switch("lineSpacing", "CGFloat", lambda s: num(s.get("line_spacing", 0)))
     switch("weightName", "String", lambda s: swift_string(s["weight"]))
+    out.append("    /// Empty: the contract does not restrict where the style appears.")
+    switch("uses", "[DSTextUse]", lambda s: "[" + ", ".join(f".{u}" for u in s.get("uses", [])) + "]")
 
     def font_expr(s):
         family = families[s["family"]]
@@ -158,6 +217,12 @@ struct DSBorder {
     let color: Color
 }
 
+struct DSPressed {
+    let offsetY: CGFloat
+    let dropShadow: Bool
+    let background: Color?
+}
+
 struct DSComponent {
     let background: Color
     let foreground: Color
@@ -169,6 +234,44 @@ struct DSComponent {
     let border: DSBorder?
     let shadow: DSShadow?
     let minHeight: CGFloat
+    let pressed: DSPressed?
+
+    /// A one-off variant with some fields replaced; every value should still be a DS token.
+    func with(
+        background: Color? = nil, foreground: Color? = nil, textStyle: DSTextStyle? = nil,
+        radius: CGFloat? = nil, paddingH: CGFloat? = nil, paddingV: CGFloat? = nil,
+        minHeight: CGFloat? = nil
+    ) -> DSComponent {
+        DSComponent(
+            background: background ?? self.background, foreground: foreground ?? self.foreground,
+            textStyle: textStyle ?? self.textStyle, radius: radius ?? self.radius, radiusStyle: radiusStyle,
+            paddingH: paddingH ?? self.paddingH, paddingV: paddingV ?? self.paddingV,
+            border: border, shadow: shadow, minHeight: minHeight ?? self.minHeight, pressed: pressed)
+    }
+
+    /// How the component looks while pressed (itself when it has no pressed state).
+    var pressedAppearance: DSComponent {
+        guard let pressed else { return self }
+        return DSComponent(
+            background: pressed.background ?? background, foreground: foreground, textStyle: textStyle,
+            radius: radius, radiusStyle: radiusStyle, paddingH: paddingH, paddingV: paddingV,
+            border: border, shadow: pressed.dropShadow ? nil : shadow, minHeight: minHeight, pressed: pressed)
+    }
+}
+
+/// Button style for a component recipe, with the contract's press feedback.
+struct DSPressableButtonStyle: ButtonStyle {
+    let component: DSComponent
+    var fillsWidth = true
+
+    func makeBody(configuration: Configuration) -> some View {
+        let isPressed = configuration.isPressed && component.pressed != nil
+        configuration.label
+            .frame(maxWidth: fillsWidth ? .infinity : nil)
+            .dsComponent(isPressed ? component.pressedAppearance : component)
+            .offset(y: isPressed ? component.pressed?.offsetY ?? 0 : 0)
+            .animation(.easeOut(duration: 0.08), value: configuration.isPressed)
+    }
 }
 
 private struct DSTextStyleModifier: ViewModifier {
@@ -269,6 +372,10 @@ def specimen_swift(doc):
     radii = ",\n".join(f"        ({swift_string(r['name'])}, DS.Radius.{r['name']}, DS.Shapes.{r['name']})" for r in doc["radii"])
     shadows = ",\n".join(f"        ({swift_string(s['name'])}, DS.Shadows.{s['name']})" for s in doc["shadows"])
     components = ",\n".join(f"        ({swift_string(c['name'])}, DS.Components.{c['name']})" for c in doc["components"])
+    gradients = ",\n".join(f"        ({swift_string(g['name'])}, DS.Gradients.{g['name']})" for g in doc.get("gradients", []))
+    overlays = ",\n".join(f"        ({swift_string(o['name'])}, DS.Overlays.{o['name']})" for o in doc.get("overlays", []))
+    accent = role_color(doc, "accent")
+    value_style, meta_style = row_styles(doc)
     signature = "\n".join(f"                Text({swift_string('• ' + s)})" for s in doc["signature"])
 
     return HEADER.format(name=doc["name"]) + f"""
@@ -300,6 +407,18 @@ struct DesignSystemSpecimenContent: View {{
     ]
     private let components: [(String, DSComponent)] = [
 {components}
+    ]
+    private let gradients: [(String, LinearGradient)] = [
+{gradients}
+    ]
+    private let overlays: [(String, Color)] = [
+{overlays}
+    ]
+    // Dense list rows: the longest names and largest numbers a real list shows.
+    private let rows: [(String, String, String)] = [
+        ("Ada", "Level 12", "1,250"),
+        ("Maximilian Alexander-Fitzgerald", "Level 48 · Team Northern Lights", "12,480,950"),
+        ("Zoë Ölçer", "Level 7", "98"),
     ]
 
     var body: some View {{
@@ -336,7 +455,7 @@ struct DesignSystemSpecimenContent: View {{
                     VStack(alignment: .leading, spacing: 4) {{
                         Text("The quick brown fox jumps over the lazy dog").dsFont(style)
                         Text("Ağaç çiçek ışık öğün şüphe İĞÜŞÖÇ 0123456789").dsFont(style)
-                        Text("\\(style.rawValue) · \\(Int(style.size))pt · \\(style.weightName) · scales with \\(String(describing: style.relativeTo))")
+                        Text("\\(style.rawValue) · \\(Int(style.size))pt · \\(style.weightName) · scales with \\(String(describing: style.relativeTo))" + (style.uses.isEmpty ? "" : " · uses: " + style.uses.map(\\.rawValue).joined(separator: ", ")))
                             .font(.caption.monospaced())
                             .foregroundStyle(DS.Colors.{secondary})
                     }}
@@ -379,10 +498,64 @@ struct DesignSystemSpecimenContent: View {{
                 }}
             }}
 
+            if !gradients.isEmpty {{
+                section("Gradients") {{
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 96))], alignment: .leading, spacing: 16) {{
+                        ForEach(gradients, id: \\.0) {{ name, gradient in
+                            VStack(spacing: 6) {{
+                                RoundedRectangle(cornerRadius: 12, style: .continuous).fill(gradient).frame(width: 88, height: 64)
+                                Text(name).font(.caption.monospaced())
+                            }}
+                        }}
+                    }}
+                }}
+            }}
+
+            if !overlays.isEmpty {{
+                section("Overlays") {{
+                    ForEach(overlays, id: \\.0) {{ name, color in
+                        VStack(alignment: .leading, spacing: 6) {{
+                            Text("Content under the overlay").dsFont(.{value_style})
+                                .frame(maxWidth: .infinity, minHeight: 72)
+                                .background(DS.Colors.{surface})
+                                .overlay(color)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            Text(name).font(.caption.monospaced())
+                        }}
+                    }}
+                }}
+            }}
+
+            section("Dense rows · {value_style} / {meta_style}") {{
+                VStack(spacing: 0) {{
+                    ForEach(rows, id: \\.0) {{ name, meta, value in
+                        HStack(spacing: 12) {{
+                            Circle().fill(DS.Colors.{accent}).frame(width: 40, height: 40)
+                            VStack(alignment: .leading, spacing: 2) {{
+                                Text(name).dsFont(.{value_style}).lineLimit(1)
+                                Text(meta).dsFont(.{meta_style}).foregroundStyle(DS.Colors.{secondary}).lineLimit(1)
+                            }}
+                            Spacer(minLength: 8)
+                            Text(value).dsFont(.{value_style}).monospacedDigit().lineLimit(1)
+                        }}
+                        .padding(.vertical, 10)
+                    }}
+                }}
+                .padding(.horizontal, 12)
+                .background(DS.Colors.{surface}, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }}
+
             if !components.isEmpty {{
                 section("Components") {{
                     ForEach(components, id: \\.0) {{ name, component in
-                        Text(name).dsComponent(component)
+                        HStack(spacing: 12) {{
+                            Text(name).dsComponent(component)
+                            if component.pressed != nil {{
+                                Text("pressed")
+                                    .dsComponent(component.pressedAppearance)
+                                    .offset(y: component.pressed?.offsetY ?? 0)
+                            }}
+                        }}
                     }}
                 }}
             }}
