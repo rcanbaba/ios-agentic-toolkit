@@ -1,5 +1,10 @@
 # ios-agentic-toolkit
 
+[![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-D97757)](https://docs.claude.com/en/docs/claude-code/plugins)
+[![Workflows](https://img.shields.io/badge/workflows-7%20implemented-2E7D32)](#workflows)
+[![iOS](https://img.shields.io/badge/iOS-Swift%20%C2%B7%20SwiftUI-0A84FF)](#workflows)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 A growing toolkit of supervised agentic workflows for real iOS engineering
 work, packaged as a [Claude Code](https://docs.claude.com/en/docs/claude-code)
 plugin.
@@ -21,6 +26,7 @@ refined by grading real runs.
 | [App Port](docs/workflows/app-port.md) | Verbatim, build-error-driven port of a legacy app's code and assets into a new app; then the view layer rebuilt on the new design system by parallel restyle agents, gated by a legacy-styling report and a human screenshot review; a final parity gate checks every inventoried feature against the legacy app | **Implemented**, derived from a real port |
 | [SwiftUI UI Implementation](docs/workflows/ui-implementation.md) | New screens on the design-system contract and generated tokens, inside the existing architecture: an approved element → token plan, then a deterministic token-usage gate, the build and simulator screenshots | **Implemented**, derived from a real port |
 | [Visual Review](docs/workflows/visual-review.md) | Read-only review of implemented screens from simulator screenshots: deterministic capture, token-usage and palette evidence, an independent reviewer citing design-system and mobile UX rules, a validated triage list fed back to implementation | **Implemented**, derived from a real port |
+| [App Divergence](docs/workflows/app-divergence.md) | Turns a ported fork into its own codebase without changing behavior: a new vocabulary, verified renames, file splits and refactors checked by independent reviewers, backend renames as data, and similarity to the original measured without file pairing | **Implemented**, derived from a real fork |
 | App Store Metadata | Description, subtitle, keywords and review notes | Planned |
 | App Review Assistant | Prepares responses to App Review | Planned |
 | Release Precheck | Pre-submission checks | Planned |
@@ -30,6 +36,23 @@ refined by grading real runs.
 
 Planned items are ideas, not features. Each will be designed when a real task
 needs it.
+
+### How the workflows fit together
+
+Most workflows stand alone. App Migration, App Port and App Divergence form
+the path from a legacy app to a new one of its own, each ending in a check
+the next one relies on (a verified inventory, a parity gate, verified
+renames); the design system feeds the port and new screens.
+
+```mermaid
+flowchart LR
+    DS["Design System<br/>contract · tokens"] --> UI["UI Implementation"]
+    MIG["App Migration<br/>inventory · flow specs · audit"] --> PORT["App Port<br/>verbatim code · restyle · parity gate"]
+    DS --> PORT
+    PORT --> DIV["App Divergence<br/>vocabulary · verified renames · refactors"]
+    PORT & UI --> VR["Visual Review"]
+    CR["Crash Investigation & Fix"]
+```
 
 ## Tools
 
@@ -65,7 +88,7 @@ and comes with a thin skill so Claude Code can trigger it.
 |---|---|---|
 | **Rule** | A domain-independent engineering constraint shared by all workflows | [`rules/`](rules/ios-engineering.md) |
 | **Skill** | Knowledge and procedure for one task, loaded on demand | [`skills/<name>/SKILL.md`](skills/) |
-| **Agent / subagent** | A separate reasoning context, used only when isolation or focus clearly pays off | Parallel area agents and independent verifiers in [App Migration](docs/workflows/app-migration.md#design-decisions); parallel restyle agents in [App Port](docs/workflows/app-port.md#design-decisions); an independent reviewer in [Visual Review](docs/workflows/visual-review.md#design-decisions) |
+| **Agent / subagent** | A separate reasoning context, used only when isolation or focus clearly pays off | Parallel area agents and independent verifiers in [App Migration](docs/workflows/app-migration.md#design-decisions); parallel restyle agents in [App Port](docs/workflows/app-port.md#design-decisions); an independent reviewer in [Visual Review](docs/workflows/visual-review.md#design-decisions); refactor agents and equivalence reviewers in [App Divergence](docs/workflows/app-divergence.md#design-decisions) |
 | **Contract** | Structured output that a later step, human or eval consumes | [`schemas/`](schemas/) |
 | **Tool** | A deterministic program the agent runs and observes | [`scripts/`](scripts/), native apps in [`tools/`](tools/), `xcodebuild`, `simctl`, `git` |
 | **Workflow** | Skills, deterministic steps and human decisions put together for one area of work | [`docs/workflows/`](docs/workflows/) |

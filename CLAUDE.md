@@ -8,7 +8,7 @@ A Claude Code **plugin** (not an iOS app): a general iOS toolkit made of
 multiple workflows (crash, UI, release, ...). It is used from *other* iOS
 repositories (`/plugin install` or `claude --plugin-dir <this repo>`). This
 repo is where the toolkit is developed. Crash, design-system, app-migration,
-app-port, UI implementation and visual review workflows are implemented; the "Planned" rows in the README workflow table are
+app-port, UI implementation, visual review and app-divergence workflows are implemented; the "Planned" rows in the README workflow table are
 intentionally unbuilt. `tools/` holds native helper apps (VNCBar) with thin
 skills that trigger them; their docs go in `docs/tools/<tool>.md`.
 
@@ -119,6 +119,22 @@ Workflow-specific design, usage, decisions and lessons go in
   prompt, the fixture and `evals/visual-review/expected/` (`run.sh --update`),
   with a negative case for each new validator rule.
 
+## App divergence workflow: how the parts connect
+
+- `skills/app-divergence/SKILL.md`: vocabulary and wire boundary with the
+  user, then measured rename / split / refactor phases in the fork;
+  `refactor-agent-prompt.md`, `equivalence-review-prompt.md` and
+  `identity-checklist.md` next to it.
+- `scripts/swift_lex.py` (code / comment / string segments) is shared by
+  `rename_identifiers.py` (refuses collisions, protected, banned and
+  one-letter names), `verify_rename.py` (only mapped tokens changed, against
+  a baseline copy), `check_split.py` (members and strings preserved),
+  `find_string_bindings.py` (xib / plist / `NSClassFromString` / string-loaded
+  assets; also used by `port-code`) and `similarity.py` (pairing-free overlap).
+- Changing a script's behavior means updating the skill, the fixture and
+  `evals/app-divergence/expected/` (`run.sh --update`), with a fixture case
+  for every defect fixed.
+
 ## VNCBar tool: how the parts connect
 
 - `tools/vnc-bar/`: Swift package for a macOS menu bar app; `build.sh`
@@ -155,6 +171,9 @@ evals/ui-implementation/run.sh               # --update regenerates expected/
 
 # Visual review: replay lint, palette check and the review validator; negative cases
 evals/visual-review/run.sh                   # --update regenerates expected/
+
+# App divergence: replay rename, verify, split, bindings and similarity on the synthetic fixture
+evals/app-divergence/run.sh                  # --update regenerates expected/
 
 # VNCBar: unit tests, build + install, docs screenshots
 (cd tools/vnc-bar && swift test)
