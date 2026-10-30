@@ -1,0 +1,5 @@
+{
+  "rename": {"tracks": "cuts", "PlaylistCell": "PremiumCell", "x": "position"},
+  "protected": ["tracks"],
+  "banned": ["premium"]
+}

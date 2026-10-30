@@ -1,0 +1,29 @@
+{
+  "files": 6,
+  "files_changed": 6,
+  "lines_changed": 30,
+  "string_literals": 20,
+  "problems": [
+    {
+      "file": "App/SceneDelegate.swift",
+      "kind": "lines",
+      "detail": "5 -> 7 lines"
+    },
+    {
+      "file": "Core/Utility/Formatters.swift",
+      "kind": "tokens",
+      "line": 6,
+      "detail": "- let rest = seconds % 60  + let remainder = seconds % 60"
+    },
+    {
+      "file": "Features/Mixtape/MixtapeViewModel.swift",
+      "kind": "strings",
+      "detail": "string literal contents changed"
+    },
+    {
+      "file": "*",
+      "kind": "string_multiset",
+      "detail": "only in baseline ['[playlist] load failed: \\\\('], only now ['[mixtape] load failed: \\\\(']"
+    }
+  ]
+}

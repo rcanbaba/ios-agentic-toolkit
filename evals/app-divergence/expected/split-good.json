@@ -1,0 +1,10 @@
+{
+  "baseline": "split/baseline/PlayerViewModel.swift",
+  "parts": [
+    "split/good/PlayerViewModel.swift",
+    "split/good/PlayerViewModel+Queue.swift"
+  ],
+  "members": 9,
+  "access_relaxed": 1,
+  "problems": []
+}

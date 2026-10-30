@@ -1,0 +1,40 @@
+{
+  "baseline": "split/baseline/PlayerViewModel.swift",
+  "parts": [
+    "split/bad/PlayerViewModel.swift",
+    "split/bad/PlayerViewModel+Queue.swift"
+  ],
+  "members": 9,
+  "access_relaxed": 1,
+  "problems": [
+    {
+      "kind": "import",
+      "file": "split/bad/PlayerViewModel+Queue.swift",
+      "detail": "import os"
+    },
+    {
+      "kind": "member_missing",
+      "detail": "func clear() { | queue.removeAll() | current = nil | }"
+    },
+    {
+      "kind": "member_missing",
+      "detail": "func report(_ event: String) { | print(\"[player] \\(event)\") | }"
+    },
+    {
+      "kind": "member_extra",
+      "detail": "func report(_ event: String) { | print(\"[player]: \\(event)\") | }"
+    },
+    {
+      "kind": "member_extra",
+      "detail": "static let player = Logger()"
+    },
+    {
+      "kind": "header_new",
+      "detail": "extension Logger {"
+    },
+    {
+      "kind": "strings",
+      "detail": "only in baseline ['[player] \\\\('], only in parts ['[player]: \\\\(']"
+    }
+  ]
+}

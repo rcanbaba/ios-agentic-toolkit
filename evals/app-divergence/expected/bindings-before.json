@@ -1,0 +1,26 @@
+{
+  "types_declared": 10,
+  "class_references": 3,
+  "asset_references": 6,
+  "asset_patterns": 1,
+  "problems": [
+    {
+      "kind": "asset_missing",
+      "file": "Features/Playlist/PlaylistCell.swift",
+      "line": 7,
+      "name": "eq_vocal"
+    },
+    {
+      "kind": "asset_missing",
+      "file": "Features/Playlist/PlaylistCell.swift",
+      "line": 11,
+      "name": "missing-art"
+    },
+    {
+      "kind": "asset_pattern_unmatched",
+      "file": "Features/Playlist/PlaylistView.swift",
+      "line": 18,
+      "name": "level_\\(level)"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "renames": 1,
+  "files_changed": [
+    "Features/Playlist/PlaylistViewModel.swift"
+  ],
+  "written": false,
+  "errors": [
+    "Features/Playlist/PlaylistViewModel.swift: 'play' already used here (renaming 'shuffle')"
+  ],
+  "warnings": []
+}

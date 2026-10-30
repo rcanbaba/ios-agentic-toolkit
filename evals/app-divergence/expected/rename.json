@@ -1,0 +1,15 @@
+{
+  "renames": 10,
+  "files_changed": [
+    "Core/Models/Playlist.swift",
+    "Core/Utility/Formatters.swift",
+    "Features/Playlist/PlaylistCell.swift",
+    "Features/Playlist/PlaylistView.swift",
+    "Features/Playlist/PlaylistViewModel.swift"
+  ],
+  "written": true,
+  "errors": [],
+  "warnings": [
+    "Features/Playlist/PlaylistViewModel.swift: enum case 'playlist' in a file that turns values into text; check names built from cases"
+  ]
+}
