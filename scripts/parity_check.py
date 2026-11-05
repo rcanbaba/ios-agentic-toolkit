@@ -19,7 +19,10 @@ Every enumeration case is checked too, not only those a feature lists, so symbol
 claimed are covered. With "legacy_src", each symbol is checked against the legacy sources the
 same way first: a symbol that was already unused (or never declared) in the legacy app is
 reported as "inherited", not as a gap, so dead legacy code does not hide real losses. Deliberate gaps (deferred features, removed dead code) go into "allow"
-with a reason; they are reported as allowed and do not fail the gate.
+with a reason; they are reported as allowed and do not fail the gate. Symbols renamed after the port
+(localization keys, identifiers) are looked up under their new names through "renames": per enumeration key,
+map files of old name -> new name (a JSON object, or one with the map under "rename"), applied in order so a
+later map can rename a name again. Reports and allow rules keep the legacy names.
 
 config.json (paths relative to the config file):
   {
@@ -37,6 +40,7 @@ config.json (paths relative to the config file):
     },
     "feature_fields": {"api_methods": "api_client_methods", "app_routes": "app_routes",
                        "localization_keys_sample": "localization_keys"},
+    "renames": {"localization_keys": ["l10n/key-map.json"]},   optional, old name -> new name
     "allow": [{"match": "feature:wallet-*", "reason": "deferred to the end of the port"},
               {"match": "api_client_methods:legacyPing", "reason": "dead in the legacy app"},
               {"match": "file:Scenes/Features/Wallet/*", "reason": "deferred"}]
@@ -127,6 +131,25 @@ class Corpus:
         return self._cache[key]
 
 
+class Renames:
+    """Legacy name -> name in the new app, per enumeration key."""
+
+    def __init__(self, config, base):
+        self.maps = {}
+        for key, files in config.items():
+            for file in [files] if isinstance(files, str) else files:
+                data = load_json(base / file)
+                mapping = data.get("rename", data) if isinstance(data, dict) else None
+                if not isinstance(mapping, dict):
+                    fail(f"rename map {file} is not an object of old name -> new name")
+                self.maps.setdefault(key, []).append(mapping)
+
+    def new_name(self, key, name):
+        for mapping in self.maps.get(key, []):
+            name = mapping.get(name, name)
+        return name
+
+
 class Allow:
     def __init__(self, rules):
         self.rules = [(r["match"], r.get("reason", "")) for r in rules]
@@ -184,6 +207,7 @@ def main():
     symbols = cfg["symbols"]
     feature_fields = cfg.get("feature_fields", {})
     allow = Allow(cfg.get("allow", []))
+    renames = Renames(cfg.get("renames", {}), base)
     corpus = Corpus(new_root, cfg.get("exclude", []))
     legacy = None
     if cfg.get("legacy_src"):
@@ -204,7 +228,7 @@ def main():
                   "inherited": []}
         for name in names:
             reason = allow.reason(key, name)
-            status = symbol_status(spec, name, corpus)
+            status = symbol_status(spec, renames.new_name(key, name), corpus)
             if status == "present":
                 bucket["present"] += 1
             elif legacy and symbol_status(spec, name, legacy) != "present":
@@ -242,7 +266,7 @@ def main():
                 name = leading_name(value)
                 if not name:
                     continue
-                status = symbol_status(spec, name, corpus)
+                status = symbol_status(spec, renames.new_name(key, name), corpus)
                 if status == "present" or allow.reason(key, name):
                     continue
                 if legacy and symbol_status(spec, name, legacy) != "present":
