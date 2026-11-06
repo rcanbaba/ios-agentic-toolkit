@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="22155" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES">
+    <objects>
+        <tableViewCell contentMode="scaleToFill" id="cell-1" customClass="PlaylistCell" customModule="App" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="64"/>
+        </tableViewCell>
+        <view contentMode="scaleToFill" id="shimmer-1" customClass="ShimmerView" customModule="ShimmerKit">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="4"/>
+        </view>
+    </objects>
+</document>

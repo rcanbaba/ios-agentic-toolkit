@@ -1,0 +1,17 @@
+{
+  "renames": 3,
+  "files_changed": [
+    "Core/Models/Playlist.swift",
+    "Core/Utility/Formatters.swift",
+    "Features/Playlist/PlaylistCell.swift",
+    "Features/Playlist/PlaylistView.swift",
+    "Features/Playlist/PlaylistViewModel.swift"
+  ],
+  "written": false,
+  "errors": [
+    "protected name in the rename map: tracks",
+    "banned word 'premium' in new name: PlaylistCell -> PremiumCell",
+    "single-character name: x -> position"
+  ],
+  "warnings": []
+}

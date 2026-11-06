@@ -1,0 +1,40 @@
+{
+  "types_declared": 10,
+  "class_references": 3,
+  "asset_references": 6,
+  "asset_patterns": 1,
+  "problems": [
+    {
+      "kind": "class_not_declared",
+      "file": "Base.lproj/PlaylistCell.xib",
+      "line": 4,
+      "name": "PlaylistCell",
+      "via": "customClass"
+    },
+    {
+      "kind": "asset_missing",
+      "file": "Features/Mixtape/MixtapeCell.swift",
+      "line": 7,
+      "name": "eq_vocal"
+    },
+    {
+      "kind": "asset_missing",
+      "file": "Features/Mixtape/MixtapeCell.swift",
+      "line": 11,
+      "name": "missing-art"
+    },
+    {
+      "kind": "class_not_declared",
+      "file": "Features/Mixtape/MixtapeCell.swift",
+      "line": 15,
+      "name": "PlaylistCell",
+      "via": "NSClassFromString"
+    },
+    {
+      "kind": "asset_pattern_unmatched",
+      "file": "Features/Mixtape/MixtapeView.swift",
+      "line": 18,
+      "name": "level_\\(level)"
+    }
+  ]
+}

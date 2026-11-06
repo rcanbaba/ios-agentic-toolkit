@@ -2,7 +2,7 @@
 name: port-code
 description: Port a legacy iOS app's code and assets into a new app, verbatim, driven by build errors. Copies the agreed scope, then loops build → resolve missing symbols and assets from the legacy app → build until green, removing temporary shims as their originals arrive and recording everything in the porting ledger. Runs after port-prep; writes only in the new app. Use when the user starts or continues moving features, screens or the core layer from an old app into a new one.
 argument-hint: "<what to port: core | a feature list | the rest> [legacy root] [new app root]"
-allowed-tools: Read, Glob, Grep, Edit, Write, Bash(python3 *port_missing_symbols.py *), Bash(python3 *port_assets.py *), Bash(python3 *parity_check.py *), Bash(xcodebuild *), Bash(xcrun simctl *), Bash(cp *), Bash(mkdir *), Bash(git status*), Bash(git diff*)
+allowed-tools: Read, Glob, Grep, Edit, Write, Bash(python3 *port_missing_symbols.py *), Bash(python3 *port_assets.py *), Bash(python3 *parity_check.py *), Bash(python3 *find_string_bindings.py *), Bash(xcodebuild *), Bash(xcrun simctl *), Bash(cp *), Bash(mkdir *), Bash(git status*), Bash(git diff*)
 ---
 
 # Port Code
@@ -112,6 +112,12 @@ and record it.
 ## 4. Verify
 
 - Build green with the project's command; report the command and result.
+- Check what the compiler does not:
+  `python3 scripts/find_string_bindings.py --src <new src> --catalog <each Assets.xcassets>`.
+  Assets loaded by string (`Image("name")`, names kept in arrays: add
+  `--asset-literals`) never fail a build; in a real port 55 such icons were
+  not copied and their panels drew empty boxes. The same scan checks xib,
+  storyboard and plist class names.
 - Run on a simulator **dedicated to this session** (create one with
   `xcrun simctl create` if another session or app uses the default one;
   sharing a simulator launched the wrong app in a real run). Hand the

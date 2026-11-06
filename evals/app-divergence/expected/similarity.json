@@ -1,0 +1,77 @@
+{
+  "fork_lines": 69,
+  "raw": {
+    "line_overlap": 60.9,
+    "fingerprint_overlap": 56.4
+  },
+  "normalized": {
+    "line_overlap": 100.0,
+    "fingerprint_overlap": 100.0
+  },
+  "matched_raw_lines_by_kind": [
+    {
+      "kind": "other logic",
+      "matched": 24,
+      "points": 34.8,
+      "share_of_kind": 52.2
+    },
+    {
+      "kind": "model field",
+      "matched": 11,
+      "points": 15.9,
+      "share_of_kind": 84.6
+    },
+    {
+      "kind": "SwiftUI modifier",
+      "matched": 4,
+      "points": 5.8,
+      "share_of_kind": 80.0
+    },
+    {
+      "kind": "enum / CodingKeys case",
+      "matched": 2,
+      "points": 2.9,
+      "share_of_kind": 100.0
+    },
+    {
+      "kind": "control flow",
+      "matched": 1,
+      "points": 1.4,
+      "share_of_kind": 33.3
+    }
+  ],
+  "areas": [
+    {
+      "area": "Features/Mixtape",
+      "lines": 48,
+      "raw_line": 52.1,
+      "raw_fingerprint": 49.1,
+      "normalized_line": 100.0,
+      "normalized_fingerprint": 100.0
+    },
+    {
+      "area": "Core/Models",
+      "lines": 13,
+      "raw_line": 76.9,
+      "raw_fingerprint": 65.4,
+      "normalized_line": 100.0,
+      "normalized_fingerprint": 100.0
+    },
+    {
+      "area": "Core/Utility",
+      "lines": 6,
+      "raw_line": 83.3,
+      "raw_fingerprint": 88.5,
+      "normalized_line": 100.0,
+      "normalized_fingerprint": 100.0
+    },
+    {
+      "area": "App",
+      "lines": 2,
+      "raw_line": 100.0,
+      "raw_fingerprint": 100.0,
+      "normalized_line": 100.0,
+      "normalized_fingerprint": 100.0
+    }
+  ]
+}

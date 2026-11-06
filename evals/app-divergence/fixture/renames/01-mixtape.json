@@ -1,0 +1,16 @@
+{
+  "rename": {
+    "Playlist": "Mixtape",
+    "PlaylistView": "MixtapeView",
+    "PlaylistViewModel": "MixtapeViewModel",
+    "PlaylistCell": "MixtapeCell",
+    "PlaylistAPI": "MixtapeAPI",
+    "fetchPlaylist": "fetchMixtape",
+    "playlist": "mixtape",
+    "Track": "Cut",
+    "track": "cut",
+    "loadTracks": "loadCuts"
+  },
+  "protected": ["playlistId", "trackCount", "tracks"],
+  "banned": ["premium"]
+}
