@@ -22,7 +22,8 @@ reported as "inherited", not as a gap, so dead legacy code does not hide real lo
 with a reason; they are reported as allowed and do not fail the gate. Symbols renamed after the port
 (localization keys, identifiers) are looked up under their new names through "renames": per enumeration key,
 map files of old name -> new name (a JSON object, or one with the map under "rename"), applied in order so a
-later map can rename a name again. Reports and allow rules keep the legacy names.
+later map can rename a name again; the key "files" maps legacy file names to new file names. Reports and allow
+rules keep the legacy names.
 
 config.json (paths relative to the config file):
   {
@@ -174,13 +175,14 @@ def symbol_status(spec, name, corpus):
     return "present"
 
 
-def find_file(legacy_rel, path_map, new_root, corpus):
+def find_file(legacy_rel, path_map, new_root, corpus, renames=None):
     for old, new in path_map:
         if legacy_rel.startswith(old):
             mapped = new + legacy_rel[len(old):]
             if (new_root / mapped).is_file():
                 return [mapped]
-    return corpus.by_basename.get(Path(legacy_rel).name, [])
+    name = Path(legacy_rel).name
+    return corpus.by_basename.get(renames.new_name("files", name) if renames else name, [])
 
 
 def main():
@@ -252,7 +254,7 @@ def main():
         files = sorted({f for f in files if PATH_LIKE.match(f)})
         missing_files, allowed_files = [], []
         for legacy_rel in files:
-            if find_file(legacy_rel, path_map, new_root, corpus):
+            if find_file(legacy_rel, path_map, new_root, corpus, renames):
                 continue
             reason = allow.reason("file", legacy_rel)
             (allowed_files if reason else missing_files).append(legacy_rel)
